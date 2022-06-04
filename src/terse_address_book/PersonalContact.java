@@ -1,88 +1,75 @@
 package terse_address_book;
 
 /**
- * 1. Entwerfen Sie zuallerst eine Klasse die einen Personenkontakt
- * wiederspiegelt.
- * 
- * Eine Person hat ...
- * 
- * einen Namen bestehend aus Vor- und einen Nachnamen.
- * eine Adresse bestehend aus Land, Stadt, Postleitzahl, Straße und Hausnummer
- * 
- * Legen sie dazu jeweils eine Klasse für den Namen und die Adresse an.
- * 
- * Es sollte möglich sein die Daten aus einem Kontakt auszulesen, zu setzen und
- * auszugeben.
- * Ergänzen Sie für alle Klassen getter und setter Methoden und eine toString()
- * Methode, die entsprechend eine Lesbare Darstellung der Klasse zurückgibt.
- * 
- * Testen Sie die Funktionalität dieser Klasse. Zum Beispiel könnte folgendes
- * Programm folgende Ausgabe erzeugen:
- * 
- * Contact contact = new Contact();
- * contact.setName(new Name("Sören", "Domrös");
- * Address b = new Address("Kiel", 24118, "Christian-Albrechst-Platz", 4);
- * contact.setAddress(b);
- * System.out.println(a);
- * 
- * 
- * Sören Domrös
- * 24118 Kiel, Christian-Albrechts-Platz 4
+ * Class to save name and address of a personal contact.
  */
-
 class PersonalContact extends Contact {
 
     private Name name;
     private Address address;
 
+    /**
+     * Initializes the personal contact with no values.
+     */
     PersonalContact() {
         this.name = null;
         this.address = null;
     }
 
+    /**
+     * Initializes the personal contact with name and address.
+     * 
+     * @param name    The name of the contact
+     * @param address The address of the contact
+     */
     PersonalContact(Name name, Address address) {
         this.name = name;
         this.address = address;
     }
 
-    
-    /** 
-     * @param name
+    /**
+     * Sets a new name for the personal contact.
+     * 
+     * @param name The name to set
      */
     void setName(Name name) {
         this.name = name;
     }
 
-    
-    /** 
-     * @param name
-     * @return Name
+    /**
+     * Returns the name-object of the personal contact.
+     * 
+     * @return The name-object of the personal contact.
      */
-    Name getName(Name name) {
+    Name getName() {
         return this.name;
     }
 
-    
-    /** 
-     * @param address
+    /**
+     * Sets a new address for the personal contact.
+     * 
+     * @param address The new address-object to set.
      */
     @Override
     void setAddress(Address address) {
         this.address = address;
     }
 
-    
-    /** 
-     * @return Address
+    /**
+     * Gets the address-object of the personal contact.
+     * 
+     * @return The address-object of the personal contact.
      */
     @Override
     Address getAddress() {
         return this.address;
     }
 
-    
-    /** 
-     * @return String
+    /**
+     * Returns name and address of the personal contact (as long as they exist)
+     * humanly readable in two lines.
+     * 
+     * @return The name and address of the contact.
      */
     @Override
     public String toString() {
