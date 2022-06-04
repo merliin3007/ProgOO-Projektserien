@@ -5,6 +5,9 @@ package terse_address_book;
  */
 class Address {
 
+    /**
+     * Some magic number that indicates some value is not given. Bad practise but works.
+     */
     private final int NOTGIVEN = -1;
 
     private String city, street, country;

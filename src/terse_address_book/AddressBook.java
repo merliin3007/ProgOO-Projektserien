@@ -4,18 +4,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.NoSuchElementException;
-import java.util.Scanner;
 
+/**
+ * Address book, to which you can add contacts, delete
+ * them, search for them and print the
+ * entire thing.
+ */
 public class AddressBook {
 
-    /**
-     * Creates an instance of an address book, to which you can add contacts, delete
-     * them, search for them and print the
-     * entire thing.
-     */
-
     private ArrayList<Contact> contacts;
-    Scanner input;
 
     /*
      * Das Adressbuch soll folgende Methoden bereitstellen:
@@ -37,11 +34,6 @@ public class AddressBook {
      */
     public AddressBook() {
         contacts = new ArrayList<Contact>();
-        input = new Scanner(System.in);
-    }
-
-    public void machKaputt() {
-        input.close();
     }
 
     /**
@@ -52,11 +44,10 @@ public class AddressBook {
         while (true) {
             System.out.println("What kind of conatct to you want to add? 1: Person 2: Company");
             try {
-                typeOfContact = input.nextInt();
+                typeOfContact = Utility.getUserInt();
             } catch (Exception e) {
                 System.out.println("Unexpected Input.");
             }
-            input.nextLine(); // cuz nextInt does not consume the \n char
 
             try {
                 if (typeOfContact == 1) {
@@ -91,8 +82,8 @@ public class AddressBook {
                     + "\"s\" or \"search\" for searching a contact. (type \"exit\" to exit)");
             String userInput = "";
             try {
-                ///input.nextLine();
-                userInput = input.nextLine().toUpperCase(Locale.ROOT); // input to upper case so no problems can arise
+                ///Utility.getUserInput();
+                userInput = Utility.getUserInput().toUpperCase(Locale.ROOT); // input to upper case so no problems can arise
                                                                        // handling it
             } catch (NoSuchElementException e) {
                 System.out.println("Expected some input.");
@@ -117,10 +108,11 @@ public class AddressBook {
                     case "S":
                     case "SEARCH":
                         print("Enter search term:");
-                        search(input.nextLine());
+                        search(Utility.getUserInput());
                         break;
                     case "EXIT":
                         running = false;
+                        print("Exiting delete-method...");
                         break;
                     default:
                         error("Invalid command! Try again!");
@@ -188,7 +180,7 @@ public class AddressBook {
     /**
      * Reads information from the console, creates a PersonalContact from it
      * and adds it to the AddressBook.
-     * @throws IOException if some error happens while input.nextLine()
+     * @throws IOException if some error happens while Utility.getUserInput()
      */
     private void addPersonalContact() throws IOException {
         Name name = readName();
@@ -203,11 +195,11 @@ public class AddressBook {
      * Reads information from the console, creates a CompanyContact from it
      * and adds it to the AddressBook.
      * 
-     * @throws IOException if some error happens while input.nextLine()
+     * @throws IOException if some error happens while Utility.getUserInput()
      */
     private void addCompanyContact() throws IOException {
         System.out.println("Enter the company name:");
-        String companyName = input.nextLine();
+        String companyName = Utility.getUserInput();
 
         Address address = readAddress();
         Name owner = readName();
@@ -221,16 +213,16 @@ public class AddressBook {
      * Reads in a Name from the Console an returns it as a Name-Object.
      * 
      * @return the Name read from the Console
-     * @throws IOException if some error happens while input.nextLine()
+     * @throws IOException if some error happens while Utility.getUserInput()
      */
     private Name readName() throws IOException {
         /* read in first name */
         System.out.println("Enter the first name:");
-        String firstName = input.nextLine();
+        String firstName = Utility.getUserInput();
 
         /* read in last name */
         System.out.println("Enter the last name:");
-        String lastName = input.nextLine();
+        String lastName = Utility.getUserInput();
 
         return new Name(firstName, lastName);
     }
@@ -239,24 +231,24 @@ public class AddressBook {
      * Reads in an Address from the Console and returns it as an Address-Object.
      * 
      * @return the Address that has been read in from the console
-     * @throws IOException if some error happens while input.nextLine()
+     * @throws IOException if some error happens while Utility.getUserInput()
      */
     private Address readAddress() throws IOException {
         System.out.println("What is the address of your contact?");
 
         /* read in coutry */
         System.out.println("Enter a country:");
-        String country = input.nextLine();
+        String country = Utility.getUserInput();
 
         /* read in city */
         System.out.println("Enter a city:");
-        String city = input.nextLine();
+        String city = Utility.getUserInput();
 
         /* read in zipcode */
         int zipCode = -1;
         while (true) {
             System.out.println("Enter a zipcode:");
-            String userInput = input.nextLine();
+            String userInput = Utility.getUserInput();
             if (userInput == "") {
                 break;
             } else {
@@ -271,13 +263,13 @@ public class AddressBook {
 
         /* read in street */
         System.out.println("Enter a street:");
-        String street = input.nextLine();
+        String street = Utility.getUserInput();
 
         /* read in housenumber */
         int houseNumber = 0;
         while (true) {
             System.out.println("Enter the number of the house:");
-            String userInput = input.nextLine();
+            String userInput = Utility.getUserInput();
             if (userInput == "") {
                 break;
             } else {
