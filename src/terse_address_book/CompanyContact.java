@@ -44,13 +44,17 @@ class CompanyContact extends Contact {
     }
 
     /**
-     * 
-     * @param name
+     * sets the company owner
+     * @param name the name of the company owner
      */
     void setCompanyOwner(Name name) {
         this.companyOwner = name;
     }
 
+    /**
+     * gets the name 
+     * @return
+     */
     Name getCompanyOwner() {
         return this.companyOwner;
     }
