@@ -17,11 +17,19 @@ class CompanyContact extends Contact {
         this.companyOwner = companyOwner;
     }
 
+    /**
+     * sets the address
+     * @param address the address
+     */
     @Override
     void setAddress(Address address) {
         this.companyAddress = address;
     }
 
+    /**
+     * gets the address
+     * @return the address
+     */
     @Override
     Address getAddress() {
         return this.companyAddress;
@@ -52,8 +60,8 @@ class CompanyContact extends Contact {
     }
 
     /**
-     * gets the name 
-     * @return
+     * gets the name of the company owner
+     * @return the name of the company owner
      */
     Name getCompanyOwner() {
         return this.companyOwner;

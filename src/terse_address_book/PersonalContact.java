@@ -36,10 +36,9 @@ class PersonalContact extends Contact {
         this.name = name;
     }
 
-    /**
-     * Returns the name-object of the personal contact.
-     * 
-     * @return The name-object of the personal contact.
+    
+    /** 
+     * @return Name
      */
     Name getName() {
         return this.name;

@@ -40,6 +40,10 @@ public class AddressBook {
         input = new Scanner(System.in);
     }
 
+    public void machKaputt() {
+        input.close();
+    }
+
     /**
      * Adds a contact from user input to the AddressBook.
      */
@@ -70,6 +74,7 @@ public class AddressBook {
                 break;
             }
         }
+        print("Contact added!");
     }
 
     /**
