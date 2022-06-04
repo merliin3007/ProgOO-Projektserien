@@ -1,7 +1,9 @@
+package terse_address_book;
+
 /**
  * Class to save a name.
  */
-public class Name {
+class Name {
     private String name, surname;
 
     /**
@@ -10,7 +12,7 @@ public class Name {
      * @param name    The name of the name
      * @param surname The surname of the name
      */
-    public Name(String name, String surname) {
+    Name(String name, String surname) {
         this.name = name;
         this.surname = surname;
     }
@@ -20,7 +22,7 @@ public class Name {
      *
      * @return The name of the name
      */
-    /*public*/ String getName() {
+    String getName() {
         return name;
     }
 
@@ -29,7 +31,7 @@ public class Name {
      *
      * @return The surname of the name
      */
-    /*public*/ String getSurname() {
+    String getSurname() {
         return surname;
     }
 
@@ -38,7 +40,7 @@ public class Name {
      *
      * @param name The new name to set
      */
-    /*public*/ void setName(String name) {
+    void setName(String name) {
         this.name = name;
     }
 
@@ -47,7 +49,7 @@ public class Name {
      *
      * @param surname The new surname to set
      */
-    /*public*/ void setSurname(String surname) {
+    void setSurname(String surname) {
         this.surname = surname;
     }
 
@@ -58,6 +60,11 @@ public class Name {
      */
     @Override
     public String toString() {
+        // Whenever some param is not filled, simply don't print a whitespace.
+        if (name.equals(""))
+            return surname;
+        if (surname.equals(""))
+            return name;
         return name + " " + surname;
     }
 }

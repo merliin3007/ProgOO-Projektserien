@@ -1,7 +1,11 @@
+package terse_address_book;
+
 /**
  * Class to save an address.
  */
-public class Address {
+class Address {
+
+    private final int NOTGIVEN = -1;
 
     private String city, street, country;
     private int zipcode, houseNumber;
@@ -15,8 +19,7 @@ public class Address {
      * @param zipcode     The zipcode of the address
      * @param houseNumber The house number of the address
      */
-    public Address(String country, String city, int zipcode, String street, int houseNumber) {
-        /* Ich glaube, das soll gar kein country entgegennehmen. */
+    Address(String country, String city, int zipcode, String street, int houseNumber) {
         this.country = country;
         this.city = city;
         this.street = street;
@@ -29,7 +32,7 @@ public class Address {
      *
      * @return The city of the address
      */
-    /*public*/ String getCity() {
+    String getCity() {
         return city;
     }
 
@@ -38,7 +41,7 @@ public class Address {
      *
      * @param city The new city
      */
-    /*public*/ void setCity(String city) {
+    void setCity(String city) {
         this.city = city;
     }
 
@@ -47,7 +50,7 @@ public class Address {
      *
      * @return The street of the address
      */
-    /*public*/ String getStreet() {
+    String getStreet() {
         return street;
     }
 
@@ -56,7 +59,7 @@ public class Address {
      *
      * @param street The new street
      */
-    /*public*/ void setStreet(String street) {
+    void setStreet(String street) {
         this.street = street;
     }
 
@@ -65,7 +68,7 @@ public class Address {
      *
      * @return The zipcode of the address
      */
-    /*public*/ int getZipcode() {
+    int getZipcode() {
         return zipcode;
     }
 
@@ -74,7 +77,7 @@ public class Address {
      *
      * @param zipcode The new zipcode
      */
-    /*public*/ void setZipcode(int zipcode) {
+    void setZipcode(int zipcode) {
         this.zipcode = zipcode;
     }
 
@@ -83,7 +86,7 @@ public class Address {
      *
      * @return The house number of the address
      */
-    /*public*/ int getHouseNumber() {
+    int getHouseNumber() {
         return houseNumber;
     }
 
@@ -92,7 +95,7 @@ public class Address {
      *
      * @param houseNumber The new house number
      */
-    /*public*/ void setHouseNumber(int houseNumber) {
+    void setHouseNumber(int houseNumber) {
         this.houseNumber = houseNumber;
     }
 
@@ -103,6 +106,14 @@ public class Address {
      */
     @Override
     public String toString() {
-        return zipcode + " " + city + ", " + street + " " + houseNumber;
+        // If any parameters are unfilled, the function makes sure they are not printed and there is no sign of their
+        // existence.
+        String output = "";
+        if (zipcode != NOTGIVEN) output += String.valueOf(zipcode) + " ";
+        if (!city.equals("")) output += city;
+        if (zipcode != NOTGIVEN || !city.equals("")) output += ", ";
+        if (!street.equals("")) output += street + " ";
+        if (houseNumber != NOTGIVEN) output += String.valueOf(houseNumber);
+        return output + "; " + country;
     }
 }

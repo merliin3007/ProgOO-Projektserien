@@ -1,3 +1,5 @@
+package terse_address_book;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -13,7 +15,7 @@ public class AddressBook {
      */
 
     private ArrayList<Contact> contacts;
-    Scanner sc;
+    Scanner input;
 
     /*
      * Das Adressbuch soll folgende Methoden bereitstellen:
@@ -35,7 +37,7 @@ public class AddressBook {
      */
     public AddressBook() {
         contacts = new ArrayList<Contact>();
-        sc = new Scanner(System.in);
+        input = new Scanner(System.in);
     }
 
     /**
@@ -46,11 +48,11 @@ public class AddressBook {
         while (true) {
             System.out.println("What kind of conatct to you want to add? 1: Person 2: Company");
             try {
-                typeOfContact = sc.nextInt();
-                sc.nextLine(); // cuz nextInt does not consume the \n char
+                typeOfContact = input.nextInt();
             } catch (Exception e) {
                 System.out.println("Unexpected Input.");
             }
+            input.nextLine(); // cuz nextInt does not consume the \n char
 
             try {
                 if (typeOfContact == 1) {
@@ -78,30 +80,31 @@ public class AddressBook {
             error("Error: There is no contact to remove in your address book!");
             return;
         }
-        Scanner input = new Scanner(System.in);
         boolean running = true;
         while (running) {
-            print("Which contact do you wish to delete?\n Enter its ID or type \"p\" or \"print\" to print them again, "
-                    + "\"s\" or \"search\" for searching a contact. (type \"exit\" to exit");
-            String user_input = "";
+            print("Which contact do you wish to delete?\nEnter its ID or type \"p\" or \"print\" to print them again, "
+                    + "\"s\" or \"search\" for searching a contact. (type \"exit\" to exit)");
+            String userInput = "";
             try {
-                user_input = input.nextLine().toUpperCase(Locale.ROOT); // input to upper case so no problems can arise
-                                                                        // handling it
+                ///input.nextLine();
+                userInput = input.nextLine().toUpperCase(Locale.ROOT); // input to upper case so no problems can arise
+                                                                       // handling it
             } catch (NoSuchElementException e) {
-                // TODO: leere exceptions sind nicht schön :D
+                System.out.println("Expected some input.");
             }
             // input was actually an ID
             try {
-                int contact_ID = Integer.parseInt(user_input);
-                if (contact_ID >= contacts.size()) {
+                int contactId = Integer.parseInt(userInput);
+                if (contactId >= contacts.size()) {
                     error("Error: No contact with this ID! Try again.");
                     continue;
                 }
-                contacts.remove(contact_ID);
-                print("Contact with ID " + Integer.toString(contact_ID) + "successfully removed.");
+                contacts.remove(contactId);
+                print("Contact with ID " + Integer.toString(contactId) + " successfully removed.");
+                running = false;
             } catch (NumberFormatException e) { // Input was not numerical
                 // The switch-statement handles the incoming commands.
-                switch (user_input) {
+                switch (userInput) {
                     case "P":
                     case "PRINT":
                         printContacts();
@@ -119,7 +122,6 @@ public class AddressBook {
                 }
             }
         }
-        input.close();
     }
 
     /**
@@ -130,9 +132,9 @@ public class AddressBook {
             print("No contacts to print!");
             return;
         }
-        print("Contacts in the address book:");
+        print("Contacts in the address book:\n");
         for (int i = 0; i < contacts.size(); i++) {
-            print("Contact " + String.valueOf(i) + ":\n" + contacts.get(i).toString());
+            print("Contact " + String.valueOf(i) + ":\n" + contacts.get(i).toString() + "\n");
         }
     }
 
@@ -148,13 +150,16 @@ public class AddressBook {
         }
         boolean anyContacts = false;
         for (int i = 0; i < contacts.size(); i++) {
-            if (contacts.get(i).toString().contains(s)) {
-                anyContacts = true;
-                print("Contact " + String.valueOf(i) + ":\n" + contacts.get(i).toString());
+            if (contacts.get(i).toString().toLowerCase().contains(s.toLowerCase())) {
+                if (!anyContacts) {
+                    anyContacts = true;
+                    print(String.format("Found occurance of \"%s\" in contacts:\n", s));
+                }
+                print("Contact " + String.valueOf(i) + ":\n" + contacts.get(i).toString() + "\n");
             }
         }
         if (!anyContacts)
-            error("No contacts found.");
+            error(String.format("No contacts found matching the search term: \"%s\".", s));
     }
 
     /**
@@ -178,14 +183,13 @@ public class AddressBook {
     /**
      * Reads information from the console, creates a PersonalContact from it
      * and adds it to the AddressBook.
+     * @throws IOException if some error happens while input.nextLine()
      */
     private void addPersonalContact() throws IOException {
         Name name = readName();
         Address address = readAddress();
 
-        PersonalContact contact = new PersonalContact();
-        contact.setName(name);
-        contact.setAddress(address);
+        PersonalContact contact = new PersonalContact(name, address);
 
         this.contacts.add(contact);
     }
@@ -193,18 +197,17 @@ public class AddressBook {
     /**
      * Reads information from the console, creates a CompanyContact from it
      * and adds it to the AddressBook.
+     * 
+     * @throws IOException if some error happens while input.nextLine()
      */
     private void addCompanyContact() throws IOException {
         System.out.println("Enter the company name:");
-        String companyName = sc.nextLine();
+        String companyName = input.nextLine();
 
         Address address = readAddress();
         Name owner = readName();
 
-        CompanyContact contact = new CompanyContact();
-        contact.setCompanyName(companyName);
-        contact.setAddress(address);
-        contact.setCompanyOwner(owner);
+        CompanyContact contact = new CompanyContact(companyName, address, owner);
 
         this.contacts.add(contact);
     }
@@ -213,16 +216,16 @@ public class AddressBook {
      * Reads in a Name from the Console an returns it as a Name-Object.
      * 
      * @return the Name read from the Console
-     * @throws IOException
+     * @throws IOException if some error happens while input.nextLine()
      */
     private Name readName() throws IOException {
         /* read in first name */
         System.out.println("Enter the first name:");
-        String firstName = sc.nextLine();
+        String firstName = input.nextLine();
 
         /* read in last name */
         System.out.println("Enter the last name:");
-        String lastName = sc.nextLine();
+        String lastName = input.nextLine();
 
         return new Name(firstName, lastName);
     }
@@ -231,45 +234,54 @@ public class AddressBook {
      * Reads in an Address from the Console and returns it as an Address-Object.
      * 
      * @return the Address that has been read in from the console
+     * @throws IOException if some error happens while input.nextLine()
      */
-    private Address readAddress() {
+    private Address readAddress() throws IOException {
         System.out.println("What is the address of your contact?");
 
         /* read in coutry */
         System.out.println("Enter a country:");
-        String country = sc.nextLine();
+        String country = input.nextLine();
 
         /* read in city */
         System.out.println("Enter a city:");
-        String city = sc.nextLine();
+        String city = input.nextLine();
 
         /* read in zipcode */
-        int zipCode = 0;
+        int zipCode = -1;
         while (true) {
             System.out.println("Enter a zipcode:");
-            try {
-                zipCode = sc.nextInt();
-                sc.nextLine(); // cuz nextInt does not consume the \n char
+            String userInput = input.nextLine();
+            if (userInput == "") {
                 break;
-            } catch (Exception e) {
-                System.out.println("Unexpected Input.");
+            } else {
+                try {
+                    zipCode = Integer.parseInt(userInput);
+                    break;
+                } catch(NumberFormatException e) {
+                    error("Unexpected Input.");
+                }
             }
         }
 
         /* read in street */
         System.out.println("Enter a street:");
-        String street = sc.nextLine();
+        String street = input.nextLine();
 
         /* read in housenumber */
         int houseNumber = 0;
         while (true) {
             System.out.println("Enter the number of the house:");
-            try {
-                houseNumber = sc.nextInt();
-                sc.nextLine(); // cuz nextInt does not consume the \n char
+            String userInput = input.nextLine();
+            if (userInput == "") {
                 break;
-            } catch (Exception e) {
-                System.out.println("Unexpected Input.");
+            } else {
+                try {
+                    houseNumber = Integer.parseInt(userInput);
+                    break;
+                } catch(NumberFormatException e) {
+                    error("Unexpected Input.");
+                }
             }
         }
 
