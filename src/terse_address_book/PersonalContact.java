@@ -45,24 +45,45 @@ class PersonalContact extends Contact {
         this.address = address;
     }
 
+    
+    /** 
+     * @param name
+     */
     void setName(Name name) {
         this.name = name;
     }
 
+    
+    /** 
+     * @param name
+     * @return Name
+     */
     Name getName(Name name) {
         return this.name;
     }
 
+    
+    /** 
+     * @param address
+     */
     @Override
     void setAddress(Address address) {
         this.address = address;
     }
 
+    
+    /** 
+     * @return Address
+     */
     @Override
     Address getAddress() {
         return this.address;
     }
 
+    
+    /** 
+     * @return String
+     */
     @Override
     public String toString() {
         return String.format(
