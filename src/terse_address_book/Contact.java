@@ -2,6 +2,8 @@ package terse_address_book;
 
 public abstract class Contact {
 
+    Address address;
+
     /**
      * Sets the address of the contact.
      * @param address the address

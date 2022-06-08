@@ -6,7 +6,7 @@ package terse_address_book;
 class PersonalContact extends Contact {
 
     private Name name;
-    private Address address;
+    //private Address address;
 
     /**
      * Initializes the personal contact with no values.

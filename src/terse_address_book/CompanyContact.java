@@ -2,18 +2,17 @@ package terse_address_book;
 
 class CompanyContact extends Contact {
     private String companyName;
-    private Address companyAddress;
     private Name companyOwner;
 
     CompanyContact() {
         this.companyName = null;
-        this.companyAddress = null;
+        this.address = null;
         this.companyOwner = null;
     }
 
     CompanyContact(String companyName, Address companyAddress, Name companyOwner) {
         this.companyName = companyName;
-        this.companyAddress = companyAddress;
+        this.address = companyAddress;
         this.companyOwner = companyOwner;
     }
 
@@ -23,7 +22,7 @@ class CompanyContact extends Contact {
      */
     @Override
     void setAddress(Address address) {
-        this.companyAddress = address;
+        this.address = address;
     }
 
     /**
@@ -32,7 +31,7 @@ class CompanyContact extends Contact {
      */
     @Override
     Address getAddress() {
-        return this.companyAddress;
+        return this.address;
     }
 
     /**
@@ -71,7 +70,7 @@ class CompanyContact extends Contact {
     public String toString() {
         return String.format("%s\n%s\n%s",
                 this.companyName == null ? "" : this.companyName,
-                this.companyAddress == null ? "" : this.companyAddress,
-                this.companyOwner == null ? "" : this.companyAddress);
+                this.address == null ? "" : this.address,
+                this.companyOwner == null ? "" : this.address);
     }
 }
