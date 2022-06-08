@@ -14,24 +14,6 @@ public class AddressBook {
 
     private ArrayList<Contact> contacts;
 
-    /*
-     * Das Adressbuch soll folgende Methoden bereitstellen:
-     * 
-     * deleteContact() - erlaubt interaktiv über Konsoleneingabe eine Kontakt
-     * auszuwählen und zu löschen
-     * addContact() - erlaubt interaktiv über Konsoleneingabe eine neuen Kontakt
-     * anzulegen und dem Adressbuch hinzuzufügen.
-     * Hier ist es möglich Teile des Kontakts, zum Beispiel die Adresse unausgefüllt
-     * zu lassen.
-     * printContacts() - gibt das Adressbuch menschenlesbar auf der Konsole aus.
-     * search(String s) - durchsucht alle Kontakte nach dem Vorkommen von s: Hier
-     * sollte es egal, wo innerhalb eines
-     * Kontaktes das Wort vorkommt. Zum Beispiel könnte die suche nach "Horst" sowas
-     * den Eintrag der Firma
-     * (siehe unten) mit dem Namen "HSG Horst/Kiebitzreihe", der Person
-     * "Horst Dieter" oder einer Person aus dem Ort
-     * "Horst" ergeben.
-     */
     public AddressBook() {
         contacts = new ArrayList<Contact>();
     }
@@ -245,7 +227,7 @@ public class AddressBook {
         String city = Utility.getUserInput();
 
         /* read in zipcode */
-        int zipCode = -1;
+        int zipCode = Address.NOTGIVEN;
         while (true) {
             System.out.println("Enter a zipcode:");
             String userInput = Utility.getUserInput();
@@ -266,7 +248,7 @@ public class AddressBook {
         String street = Utility.getUserInput();
 
         /* read in housenumber */
-        int houseNumber = 0;
+        int houseNumber = Address.NOTGIVEN;
         while (true) {
             System.out.println("Enter the number of the house:");
             String userInput = Utility.getUserInput();

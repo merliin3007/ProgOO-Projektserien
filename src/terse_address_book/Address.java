@@ -8,7 +8,7 @@ class Address {
     /**
      * Some magic number that indicates some value is not given. Bad practise but works.
      */
-    private final int NOTGIVEN = -1;
+    public static final int NOTGIVEN = -1;
 
     private String city, street, country;
     private int zipcode, houseNumber;
