@@ -16,13 +16,15 @@ public class Main {
                 return;
             }
         }
-        awaitCommand();
+        playground();
+        /* Close the Scanner used in the Utility Class. */
+        Utility.close();
     }
 
     /**
      * Lets the user enter some fancy commands and test the addressbook.
      */
-    private static void awaitCommand() {
+    private static void playground() {
         printInfo();
         AddressBook addressBook = new AddressBook();
         boolean running = true;
@@ -49,6 +51,9 @@ public class Main {
                 break;
             case "exit":
                 running = false;
+                break;
+            case "help":
+                printInfo();
                 break;
             default:
                 System.out.println("Unknown Command");

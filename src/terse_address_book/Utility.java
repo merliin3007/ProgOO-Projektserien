@@ -11,7 +11,7 @@ public class Utility {
      */
     static Scanner sc = new Scanner(System.in);
 
-    
+
     /** 
      * Utility method to receive user input from terminal.
      * @return String the user input line
@@ -46,5 +46,12 @@ public class Utility {
         }
         
         return input;
+    }
+
+    /**
+     * closes the scanner.
+     */
+    public static void close() {
+        Utility.sc.close();
     }
 }
