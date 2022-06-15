@@ -5,7 +5,7 @@
 
 package model;
 /**
- * A utility class to transform integer direction into a X and Y movement.
+ * A utility class to transform integer direction into a X and Y movement. Hi.hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
  */
 public class Direction {
 
