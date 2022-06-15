@@ -1,5 +1,7 @@
 package view;
 
+
+import utility.Console;
 import model.World;
 
 /**
@@ -10,6 +12,8 @@ public class ConsoleView implements View {
 
 	@Override
 	public void update(World world) {
+		Console.clear();
+		
 		// The player's position
 		int playerX = world.getPlayerX();
 		int playerY = world.getPlayerY();
@@ -19,6 +23,8 @@ public class ConsoleView implements View {
 				// If the player is here, print #, otherwise print .
 				if (row == playerY && col == playerX) {
 					System.out.print("#");
+				} else if (world.getField(col, row)) {
+					System.out.print("O");
 				} else {
 					System.out.print(".");
 				}

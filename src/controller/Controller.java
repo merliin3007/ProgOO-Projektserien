@@ -9,7 +9,7 @@ import java.util.List;
 
 import javax.swing.JFrame;
 
-import model.Direction;
+import model.MovementDirection;
 import model.World;
 import view.View;
 
@@ -50,23 +50,35 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
 	@Override
 	public void keyPressed(KeyEvent e) {
 		// Check if we need to do something. Tells the world to move the player.
+		MovementDirection dir;
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_UP:
-			world.movePlayer(1); // 1 to move up
+			dir = MovementDirection.UP;
 			break;
 
 		case KeyEvent.VK_DOWN:
-			world.movePlayer(2); // 2 t move down
+			dir = MovementDirection.DOWN;
 			break;
 
 		case KeyEvent.VK_LEFT:
-			world.movePlayer(3); // 3 to move left
+			dir = MovementDirection.LEFT;
 			break;
 
 		case KeyEvent.VK_RIGHT:
-			world.movePlayer(4); // 4 to move right
+			dir = MovementDirection.RIGHT;
 			break;
+			
+		default:
+			dir = MovementDirection.NONE;
 		}
+		
+		int newLocationX = world.getPlayerX() + dir.deltaX, newLocationY = world.getPlayerY() + dir.deltaY;
+		if (canMoveToField(newLocationX, newLocationY)) {
+			world.setPlayerLocation(newLocationX, newLocationY);
+		} else {
+			System.out.println("Da ist ne Wand!");
+		}
+		
 	}
 
 	@Override
@@ -114,4 +126,11 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
 		
 	}
 
+	private boolean canMoveToField(int xPos, int yPos) {
+		if (xPos >= this.world.getWidth() || xPos < 0 
+			|| yPos >= this.world.getHeight() || yPos < 0) {
+			return false;
+		} 
+		return !world.getField(xPos, yPos);
+	}
 }
