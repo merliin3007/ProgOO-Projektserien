@@ -1,10 +1,11 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 
 import view.View;
+import model.Enemy;
+
 /**
  * The world is our model. It saves the bare minimum of information required to
  * accurately reflect the state of the game. Note how this does not know
@@ -20,10 +21,15 @@ public class World {
 	private final int width;
 	/** The world's height. */
 	private final int height;
+
+	private int level = 1;
+	
 	/** The player's x position in the world. */
 	private int playerX = 0;
 	/** The player's y position in the world. */
 	private int playerY = 0;
+
+	private ArrayList<Enemy> enemies;
 
 	/* The X and Y position of the start field. */
 	private int startX = 0;
@@ -38,6 +44,7 @@ public class World {
 
 	/** creates a map of obstacles for the labyrinth, where "true" is an obstacle */
 	private boolean[][] obstacleMap;
+	private byte[][] playerTailMap;
 	/**
 	 * Creates a new world with the given size.
 	 */
@@ -46,7 +53,9 @@ public class World {
 		this.width = width;
 		this.height = height;
 		this.obstacleMap = new boolean[width][height];
+		this.playerTailMap = new byte[width][height];
 
+		this.enemies = new ArrayList<Enemy>();
 		
 		/* This is some ugly temporary stuff dude */
 		/*
@@ -58,10 +67,10 @@ public class World {
 		}*/
 
 		//if (true) return;
-
+		/*
 		Random rnd = new Random();
-		for (int i = 0; i < 4; ++i) {
-			for (int x = 0, y = 0;;) {
+		for (int i = 0; i < this.getWidth() * this.getHeight() * this.level; ++i) {
+			for (int x = rnd.nextInt(this.getWidth() - 1), y = rnd.nextInt(this.getHeight() - 1);;) {
 				MovementDirection dir = MovementDirection.UP;
 				switch(rnd.nextInt(4)) {
 				case 0: dir = MovementDirection.UP; break;
@@ -69,8 +78,11 @@ public class World {
 				case 2: dir = MovementDirection.LEFT; break;
 				case 3: dir = MovementDirection.RIGHT; break;
 				}
-				if (x)
-				if (this.getField(x + dir.deltaX, y + dir.deltaX) || this.getField(x + dir.deltaX * 2, y + dir.deltaY * 2)) {
+				x += dir.deltaX;
+				y += dir.deltaY;
+				if (x < 0 || x >= this.getWidth() || y < 0 || y >= this.getHeight()) {
+					break;
+				} else if (this.getField(x + dir.deltaX, y + dir.deltaX) || this.getField(x + dir.deltaX * 2, y + dir.deltaY * 2)) {
 					break;
 				} else if (false) {
 					break;
@@ -78,10 +90,13 @@ public class World {
 					this.setObstacleInField(x + dir.deltaX, y + dir.deltaY);
 				}
 			}
-		}
+		}*/
 	}
 
-	///////////////////////////////////////////////////////////////////////////
+	public void timerTick() {
+		// TODO: was mitm timer machen, weils geht
+	}
+
 	// Getters and Setters
 
 	public int getWidth() {
@@ -170,6 +185,10 @@ public class World {
 	*/
 	public int getFinishY() { return this.finishY; }
 
+	public ArrayList<Enemy> getEnemies() { return this.enemies; }
+
+	public boolean[][] getObstacleMap() { return this.obstacleMap; }
+
 	/**
 	 * returns whether the checked field has a collision object in it
 	 * @param xPos	The x-position to check
@@ -177,7 +196,7 @@ public class World {
 	 * @return true in case of a 
 	 */
 	public boolean getField(int xPos, int yPos) {
-		return this.obstacleMap[xPos][yPos];
+		return (xPos < 0 || xPos >= this.getWidth() || yPos < 0 || yPos >= this.getHeight()) ? true : this.obstacleMap[yPos][xPos];
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// Player Management

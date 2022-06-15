@@ -3,10 +3,14 @@ import java.awt.Dimension;
 import java.awt.Insets;
 
 import javax.swing.JFrame;
+import javax.swing.Timer;
 
 import model.World;
 import view.ConsoleView;
 import view.GraphicView;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 
 /**
@@ -53,7 +57,39 @@ public class Labyrinth {
                 controller.setSize(size);
                 controller.setMinimumSize(size);
                 controller.setVisible(true);
+
+
+
+
+
+                ActionListener actionListener = new ActionListener() {
+
+                    public void actionPerformed(ActionEvent actionEvent) {
+                        world.timerTick();
+                    }
+                };
+                Timer timer = new Timer(500, actionListener);
+                timer.start();
             }
         });
+
+        /*
+        EventQueue.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                ActionListener actionListener = new ActionListener() {
+
+                    public void actionPerformed(ActionEvent actionEvent) {
+                        System.out.println("Hello");
+                    }
+                };
+                Timer timer = new Timer(500, actionListener);
+                timer.start();
+            }
+        });
+        */
+
+
     }
 }

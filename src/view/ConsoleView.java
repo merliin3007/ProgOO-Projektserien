@@ -3,6 +3,7 @@ package view;
 
 import utility.Console;
 import model.World;
+import model.Enemy;
 
 /**
  * A view that prints the current state of the world to the console upon every
@@ -20,8 +21,16 @@ public class ConsoleView implements View {
 
 		for (int row = 0; row < world.getHeight(); row++) {
 			for (int col = 0; col < world.getWidth(); col++) {
+				boolean printEnemy = false;
+				for (Enemy enemy : world.getEnemies()) {
+					if (enemy.getPositionX() == col && enemy.getPositionY() == row) {
+						printEnemy = true;
+					}
+				}
 				// If the player is here, print #, otherwise print .
-				if (row == playerY && col == playerX) {
+				if (printEnemy) {
+					System.out.print('!');
+				} else if (row == playerY && col == playerX) {
 					System.out.print("#");
 				} else if (world.getField(col, row)) {
 					System.out.print("O");
