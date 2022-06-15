@@ -3,6 +3,11 @@
  */
 
 
+/**
+ * Ein neuer Kommentar ohne jeglichen Inhalt.
+ */
+
+ 
 package model;
 /**
  * A utility class to transform integer direction into a X and Y movement. Hi.hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
