@@ -54,6 +54,7 @@ public class Point2d {
     public int getPosY() {
         return this.ypos;
     }
+
     public int getPosStartX() {
         return this.startXpos;
     }

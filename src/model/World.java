@@ -67,7 +67,7 @@ public class World {
 		}*/
 
 		//if (true) return;
-		/*
+
 		Random rnd = new Random();
 		for (int i = 0; i < this.getWidth() * this.getHeight() * this.level; ++i) {
 			for (int x = rnd.nextInt(this.getWidth() - 1), y = rnd.nextInt(this.getHeight() - 1);;) {
@@ -90,7 +90,7 @@ public class World {
 					this.setObstacleInField(x + dir.deltaX, y + dir.deltaY);
 				}
 			}
-		}*/
+		}
 	}
 
 	public void timerTick() {
