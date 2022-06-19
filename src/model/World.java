@@ -6,9 +6,10 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Stack;
 
-import org.jetbrains.annotations.NotNull;
 import view.View;
 import model.Enemy;
+import model.CaveWorldGenerator;
+import model.PathWorldGenerator;
 import utility.Point2d;
 
 /**
@@ -65,6 +66,8 @@ public class World {
     private float globalBrightness = 1.0f;
     private ArrayList<Point2d> emptyFields;
 
+    private WorldGenerator worldGenerator;
+
     /**
      * Creates a new world with the given size.
      */
@@ -72,6 +75,8 @@ public class World {
         // Normally, we would check the arguments for proper values
         this.width = width;
         this.height = height;
+
+        this.worldGenerator = new PathWorldGenerator(this);
 
         this.resetWorld();
     }
@@ -83,14 +88,7 @@ public class World {
 
         this.enemies = new ArrayList<Enemy>();
 
-        Random rnd = new Random();
-        /*this.startX = rnd.nextInt(this.width);
-        this.startY = rnd.nextInt(this.height);
-        this.finishX = rnd.nextInt(this.width);
-        this.finishY = rnd.nextInt(this.height);*/
-
-        //this.generateWorld();
-        this.generatePathsOnMap();
+        worldGenerator.generateWorld();
         this.generateLightingMap();
     }
 
@@ -148,193 +146,6 @@ public class World {
                     if (fieldVal == -1.0f) {
                         s.push(new Point2d(x, y));
                     }
-                }
-            }
-        }
-    }
-
-    private Point2d getRandomPointOnMap() {
-        return Point2d.RandomPoint2d(this.getWidth(), this.getHeight());
-    }
-
-    private Point2d getCornerPointOnMap() {
-        Point2d tmp = getRandomPointOnMap();
-        do {
-            tmp = getRandomPointOnMap();
-        }
-        while (!(tmp.getX() > (int) (this.getWidth() / 4) || tmp.getX() < (int) (this.getWidth() / 4 * 3) ||
-                tmp.getY() > (int) (this.getHeight() / 4) || tmp.getY() < (int) (this.getHeight() / 4 * 3)));
-        return tmp;
-    }
-
-    private int getQuadrant(Point2d pos) {
-        if (pos.getX() < (int) (this.getWidth() / 2)) {
-            if (pos.getY() < (int) (this.getHeight() / 2))
-                return 1;
-            else
-                return 3;
-        } else {
-            if (pos.getY() < (int) (this.getHeight() / 2))
-                return 2;
-            else
-                return 4;
-        }
-
-    }
-
-    public void generatePathsOnMap() {
-        /* Fill the whole map with obstacles */
-        for (int i = 0; i < this.getWidth(); ++i) {
-            for (int j = 0; j < this.getHeight(); ++j) {
-                this.obstacleMap[j][i] = true;
-            }
-        }
-        Point2d startPoint = getCornerPointOnMap();
-        Point2d endPoint = getCornerPointOnMap();
-        // handle edge case where start, end are same point
-        do {
-            endPoint = getCornerPointOnMap();
-        } while (startPoint.inRangeOf(endPoint, 2));
-        // set start, finish
-        setStart(startPoint);
-        setFinish(endPoint);
-        //start further point generation
-        Random r = new Random();
-        int amountOfRandomPoints = r.nextInt(8, 15); // TODO better values
-        Point2d[] pathPoints = new Point2d[amountOfRandomPoints + 2];
-        // create primary path to connect
-        for (int curPoint = 0; curPoint < pathPoints.length; curPoint++) {
-            if (curPoint == 0) {
-                pathPoints[curPoint] = startPoint;
-            } else if (curPoint == pathPoints.length - 1) {
-                pathPoints[curPoint] = endPoint;
-            } else {
-                do {
-                    pathPoints[curPoint] = getRandomPointOnMap();
-                } while (pathPoints[curPoint - 1].inRangeOf(pathPoints[curPoint], 3)); // TODO fixed range here
-            }
-        }
-        // connect points
-        for (int curPoint = 0; curPoint < pathPoints.length - 1; curPoint++) {
-            int xDist = pathPoints[curPoint + 1].getX() - pathPoints[curPoint].getX();
-            int yDist = pathPoints[curPoint + 1].getY() - pathPoints[curPoint].getY();
-            Point2d moveOrigin = pathPoints[curPoint].copy();
-            while (xDist != 0 && yDist != 0) {
-                boolean xRatherThanY = r.nextBoolean();
-                if (xRatherThanY) {
-                    int xMovement = r.nextInt(1, Math.abs(xDist) + 1);
-                    int negative = xDist < 0 ? -1 : 1;
-                    for (int vel = 0; vel < xMovement; vel++) {
-                        removeObstacleInField(moveOrigin.getX() + negative * vel, moveOrigin.getY());
-                    }
-                    moveOrigin.addX(negative * xMovement);
-                    xDist -= negative * xMovement;
-                } else {
-                    int yMovement = r.nextInt(1, Math.abs(yDist) + 1);
-                    int negative = yDist < 0 ? -1 : 1;
-                    for (int vel = 0; vel < yMovement; vel++) {
-                        removeObstacleInField(moveOrigin.getX(), moveOrigin.getY() + negative * vel);
-                    }
-                    moveOrigin.addY(negative * yMovement);
-                    yDist -= negative * yMovement;
-                }
-            }
-
-        }
-    }
-
-    /**
-     * TODO: in eigene Klasse auslagern (mit digRandomPath())
-     */
-    public void generateWorld() {
-        /* Fill the whole map with obstacles */
-        for (int i = 0; i < this.getWidth(); ++i) {
-            for (int j = 0; j < this.getHeight(); ++j) {
-                this.obstacleMap[j][i] = true;
-            }
-        }
-        /* Create a path from start to finish */
-        int currentX = this.startX, currentY = this.startY;
-        this.obstacleMap[currentY][currentX] = false;
-        while (this.obstacleMap[this.finishY][this.finishX]) {
-            int[][] directions = new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-            utility.Utility.shuffleArray(directions);
-            /* try to move to a field that hasn't been visited yet */
-            boolean hasMoved = false;
-            for (int[] dir : directions) {
-                int newX = currentX + dir[0], newY = currentY + dir[1];
-                if (newX < 0 || newX >= this.getWidth() || newY < 0 || newY >= this.getHeight() || !this.obstacleMap[newY][newX]) {
-                    continue;
-                } else if (this.collisionAroundField(newX, newY) < 3) {
-                    continue;
-                } else {
-                    obstacleMap[newY][newX] = false;
-                    this.emptyFields.add(new Point2d(newX, newY));
-                    currentX = newX;
-                    currentY = newY;
-                    hasMoved = true;
-                    break;
-                }
-            }
-            /* if no (new) move possible -> move directly towards finish */
-            if (!hasMoved) {
-                int distX = finishX - currentX;
-                int distY = finishY - currentY;
-                if (Math.abs(distX) >= Math.abs(distY)) {
-                    currentX += distX > 0 ? 1 : -1;
-                } else {
-                    currentY += distY > 0 ? 1 : -1;
-                }
-                this.obstacleMap[currentY][currentX] = false;
-            }
-        }
-
-        int upperBound = this.width * this.height / 4;
-        int numRandomPaths = upperBound * this.emptyFields.size();
-        Random rnd = new Random();
-        for (int i = 0; i < numRandomPaths && this.getEmptyFields().size() < upperBound; ++i) {
-            digRandomPath(rnd.nextInt((int) ((this.width * this.height) / 50)));
-        }
-    }
-
-    public void digRandomPath(int pathLen) {
-        Point2d current = Point2d.RandomPoint2d(this.width, this.height);
-        for (int i = 0; i < pathLen; ++i) {
-            int[][] directions = new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-            utility.Utility.shuffleArray(directions);
-            /* try to move to a field that hasn't been visited yet */
-            boolean hasMoved = false;
-            for (int[] dir : directions) {
-                int newX = current.getX() + dir[0], newY = current.getY() + dir[1];
-                if (newX < 0 || newX >= this.getWidth() || newY < 0 || newY >= this.getHeight()) {
-                    continue;
-                } else if (!this.obstacleMap[newY][newX]) {
-                    continue;
-                } else if (this.collisionAroundField(newX, newY) < 3) {
-                    continue;
-                } else {
-                    obstacleMap[newY][newX] = false;
-                    this.emptyFields.add(new Point2d(newX, newY));
-                    current.setX(newX);
-                    current.setY(newY);
-                    hasMoved = true;
-                    break;
-                }
-            }
-            if (!hasMoved) {
-                break;
-            }
-        }
-
-        Random rnd = new Random();
-        while (this.obstacleMap[current.getY()][current.getX()]) {
-            if (rnd.nextBoolean()) {
-                int distX = startX - current.getX();
-                int distY = startY - current.getY();
-                if (Math.abs(distX) >= Math.abs(distY)) {
-                    current.addX(distX > 0 ? 1 : -1);
-                } else {
-                    current.addY(distY > 0 ? 1 : -1);
                 }
             }
         }
@@ -556,8 +367,8 @@ public class World {
     ///////////////////////////////////////////////////////////////////////////
     // Player Management
     void setObstacleInField(int xPos, int yPos) {
-        if (xPos >= 0 && xPos < this.obstacleMap.length && yPos >= 0 && yPos < this.obstacleMap[0].length)
-            this.obstacleMap[xPos][yPos] = true;
+        if (xPos >= 0 && xPos < this.getWidth() && yPos >= 0 && yPos < this.getHeight())
+            this.obstacleMap[yPos][xPos] = true;
         else
             System.out.println("Error: Tried setting obstacle outside map");
     }
@@ -571,10 +382,12 @@ public class World {
     ///////////////////////////////////////////////////////////////////////////
     // Player Management
     void removeObstacleInField(int xPos, int yPos) {
-        if (xPos >= 0 && xPos < this.obstacleMap.length && yPos >= 0 && yPos < this.obstacleMap[0].length)
-            this.obstacleMap[xPos][yPos] = false;
-        else
+        if (xPos >= 0 && xPos < this.getWidth() && yPos >= 0 && yPos < this.getHeight()) {
+            this.obstacleMap[yPos][xPos] = false;
+            this.emptyFields.add(new Point2d(xPos, yPos));
+        } else {
             System.out.println("Error: Tried removing obstacle outside map");
+        }
     }
 
     /**

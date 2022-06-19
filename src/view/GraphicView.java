@@ -170,8 +170,8 @@ public class GraphicView extends JPanel implements View {
 
 		// Level Counter
 		this.levelCounter.setLocation(
-			(int)(1 * this.cameraDimension.width),
-			(int)(world.getHeight() * this.cameraDimension.height - this.cameraDimension.height)
+			(int)(1 * this.fieldDimension.width),
+			(int)(world.getHeight() * this.fieldDimension.height - this.fieldDimension.height)
 		);
 
 		this.levelCounterContent = String.format("Level: %d", world.getLevel());
@@ -207,7 +207,7 @@ public class GraphicView extends JPanel implements View {
 
 		System.out.println(this.cameraPosition);
 		System.out.println(this.getWidth());
-		System.out.println(1.f / deltaTime);
+		System.out.println(1.f / (deltaTime / 10.f));
 		System.out.println(this.zoom);
 
 		/* limit scene x */
@@ -220,8 +220,8 @@ public class GraphicView extends JPanel implements View {
 		/* limit scene y */
 		if (this.cameraPosition.getY() > 0.f) {
 			this.cameraPosition.setY(0.f);
-		} else if (this.cameraPosition.getY() < -this.getHeight() * (this.zoom -1.f)) {
-			this.cameraPosition.setY(-this.getHeight() * (this.zoom -1.f));
+		} else if (this.cameraPosition.getY() < -this.getHeight() * (this.zoom - 1.f)) {
+			this.cameraPosition.setY(-this.getHeight() * (this.zoom - 1.f));
 		}
 
 		this.update(world);
