@@ -76,7 +76,7 @@ public class GraphicView extends JPanel implements View {
 
 	private Point2f cameraPosition = new Point2f(10.f, 5.f);
 	private float zoom = 2.f;
-	private float cameraFollowSpeed = 2.5f;
+	private float cameraFollowSpeed = .5f;
 
 	/**
 	 * Creates a new instance.
@@ -128,8 +128,8 @@ public class GraphicView extends JPanel implements View {
 		// Update Finish Field
 		finishField.setSize(cameraDimension);
 		finishField.setLocation(
-			(int)(world.getFinishX() * cameraDimension.width),
-			(int)(world.getFinishY() * cameraDimension.height)
+			(int)((world.getFinishX() * cameraDimension.width) + this.cameraPosition.getX()),
+			(int)((world.getFinishY() * cameraDimension.height) + this.cameraPosition.getY())
 		);
 		// Update obstacles
 		this.obstacles.clear();
@@ -151,8 +151,8 @@ public class GraphicView extends JPanel implements View {
 		// Update players size and location
 		player.setSize(cameraDimension);
 		player.setLocation(
-			(int)(world.getPlayerX() * cameraDimension.width),
-			(int)(world.getPlayerY() * cameraDimension.height)
+			(int)((world.getPlayerX() * cameraDimension.width) + this.cameraPosition.getX()),
+			(int)((world.getPlayerY() * cameraDimension.height) + this.cameraPosition.getY())
 		);
 		// Update enemies
 		this.enemies.clear();
@@ -160,8 +160,8 @@ public class GraphicView extends JPanel implements View {
 			Rectangle enemyRectangle = new Rectangle(1, 1);
 			enemyRectangle.setSize(cameraDimension);
 			enemyRectangle.setLocation(
-				(int)(enemy.getPositionX() * cameraDimension.width),
-				(int)(enemy.getPositionY() * cameraDimension.height)
+				(int)((enemy.getPositionX() * cameraDimension.width) + this.cameraPosition.getX()),
+				(int)((enemy.getPositionY() * cameraDimension.height + this.cameraPosition.getY()))
 			);
 			this.enemies.add(enemyRectangle);
 		}
@@ -170,8 +170,8 @@ public class GraphicView extends JPanel implements View {
 
 		// Level Counter
 		this.levelCounter.setLocation(
-			(int)(1 * this.cameraDimension.width),
-			(int)(world.getHeight() * this.cameraDimension.height - this.cameraDimension.height)
+			(int)(1 * this.fieldDimension.width),
+			(int)(world.getHeight() * this.fieldDimension.height - this.fieldDimension.height)
 		);
 
 		this.levelCounterContent = String.format("Level: %d", world.getLevel());
@@ -181,16 +181,50 @@ public class GraphicView extends JPanel implements View {
 
 	@Override
 	public void updateCamera(World world, float deltaTime) {
-		float sceneMinX = -1000000.f;
-		float sceneMaxX = 1000000.f;
-		// x
-        float center_offset = (1.f / this.zoom) / 2.f;
-        float view_center_x = this.cameraPosition.getX() + center_offset;
-        if (utility.Utility.floatcmp((float)(world.getPlayerX()), view_center_x, 0.00001f))
-            return;
-        float dir = world.getPlayerX() < view_center_x ? -1.f : 1.f;
-        float border_diff = dir == -1.f ? Math.abs(view_center_x - sceneMaxX) : Math.abs(view_center_x - sceneMaxX);
-        this.move(dir * Math.abs(world.getPlayerX() - view_center_x) * this.cameraFollowSpeed * deltaTime, 0.f);
+		this.zoom = 1.f + (float)Math.log((double)world.getLevel()) * 0.5f;
+		this.cameraDimension.setSize((double)(this.fieldDimension.getWidth() * this.zoom), (double)(this.fieldDimension.getHeight() * this.zoom));
+
+		deltaTime /= 100.f;
+
+		float moveX = 0.0f;
+		float moveY = 0.0f;
+
+		/* Update Follow X */
+		float viewCenterX = this.getWidth() / 2.f;
+		if (!Utility.intcmp((int)(world.getPlayerX()), (int)viewCenterX, 5)) {
+			float dir = this.player.getLocation().getX() < viewCenterX ? 1.f : -1.f;
+			moveX = dir * Math.abs((float)this.player.getLocation().getX() - viewCenterX) * this.cameraFollowSpeed * deltaTime;
+		}
+
+		/* Update Follow Y */
+		float viewCenterY = this.getHeight() / 2.f;
+		if (!Utility.floatcmp((float)(world.getPlayerY()), viewCenterY, 1.f)) {
+			float dir = this.player.getLocation().getY() < viewCenterY ? 1.f : -1.f;
+			moveY = dir * Math.abs((float)this.player.getLocation().getY() - viewCenterY) * this.cameraFollowSpeed * deltaTime;
+		}
+
+		this.move(moveX, moveY);
+
+		System.out.println(this.cameraPosition);
+		System.out.println(this.getWidth());
+		System.out.println(1.f / deltaTime);
+		System.out.println(this.zoom);
+
+		/* limit scene x */
+		if ((int)this.cameraPosition.getX() > 0) {
+			this.cameraPosition.setX(0.f);
+		} else if (this.cameraPosition.getX() < -this.getWidth() * (this.zoom - 1.f)) {
+			this.cameraPosition.setX((int)(-this.getWidth() * (this.zoom - 1.f)));
+		}
+
+		/* limit scene y */
+		if (this.cameraPosition.getY() > 0.f) {
+			this.cameraPosition.setY(0.f);
+		} else if (this.cameraPosition.getY() < -this.getHeight() * (this.zoom -1.f)) {
+			this.cameraPosition.setY(-this.getHeight() * (this.zoom -1.f));
+		}
+
+		this.update(world);
 	}
 
 	private void move(float dirX, float dirY) {

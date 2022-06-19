@@ -36,4 +36,8 @@ public class Utility {
     public static boolean floatcmp(float a, float b) {
         return Utility.floatcmp(a, b, 0.0001f);
     }
+
+    public static boolean intcmp(int a, int b, int precision) {
+        return Math.abs(a - b) <= precision;
+    }
 }

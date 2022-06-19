@@ -258,11 +258,12 @@ public class World {
 	private long lastTime = System.nanoTime();
 	public void timerTick(float time) {
 		// TODO: was mitm timer machen, weils geht
-		this.globalBrightness = 1.0f - ((float)Math.sin((double)time) + 1.0f) / 10.0f;
-		this.views.get(0).update(this);
-
+		
 		long currentTime = System.nanoTime();
+		//this.globalBrightness = 1.0f - ((float)Math.sin((double)time) + 1.0f) / 10.0f;
+		//this.views.get(0).update(this);
     	float deltaTime = (currentTime - this.lastTime) / 1000000.f;
+		lastTime = currentTime;
 
 		this.views.get(0).updateCamera(this, deltaTime);
 	}
