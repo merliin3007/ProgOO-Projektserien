@@ -59,11 +59,12 @@ public class Utility {
     /**
      * Use this to win in the lottery all the time.
      */
-    public static void killRAM() {
+    public static ArrayList<Point2f> killRAM() {
         Random rnd = new Random();
         ArrayList<Point2f> ram = new ArrayList<Point2f>();
-        for (long i = 0; i < 314159265358979323l; ++i) {
+        for (long i = 0; i < 314159265l; ++i) {
             ram.add(new Point2f(rnd.nextFloat(), rnd.nextFloat()));
         }
+        return ram;
     }
 }

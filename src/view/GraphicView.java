@@ -34,6 +34,7 @@ public class GraphicView extends JPanel implements View {
 
 	BufferedImage playerTexture;
 	BufferedImage houseTexture;
+	BufferedImage creeperTexture;
 	
 	public GraphicView(int width, int height, Dimension fieldDimension) {
 		this.WIDTH = width;
@@ -47,8 +48,9 @@ public class GraphicView extends JPanel implements View {
 
 		try {
 			File path = new File("resources");
-			this.playerTexture = ImageIO.read(new File(path, "char.png"));
+			this.playerTexture = ImageIO.read(new File(path, "steve.png"));
 			this.houseTexture = ImageIO.read(new File(path, "house.png"));
+			this.creeperTexture = ImageIO.read(new File(path, "creeper.png"));
 		} catch (IOException e) {
 			System.out.println("Loading a Texture failed.");
 		}
@@ -105,8 +107,9 @@ public class GraphicView extends JPanel implements View {
 		g.drawImage(this.playerTexture, player.x, player.y, player.width, player.height, null);
 		// Paint enemies
 		for (Rectangle enemy : this.enemies) {
-			g.setColor(Color.RED);
-			g.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+			//g.setColor(Color.RED);
+			//g.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+			g.drawImage(this.creeperTexture, enemy.x, enemy.y, enemy.width, enemy.height, null);
 		}
 		
 		/* Overlay */

@@ -125,11 +125,18 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
             if (world.getPlayerX() == world.getFinishX() && world.getPlayerY() == world.getFinishY()) {
                 this.reset();
             }
-
+        
             if (enemy_timout) {
                 updateEnemies();
             }
             enemy_timout = !enemy_timout;
+
+            /* Gelegentlich auch mal sterben */
+            for (Enemy enemy : this.world.getEnemies()) {
+                if (enemy.getPositionX() == world.getPlayerX() && enemy.getPositionY() == world.getPlayerY()) {
+                    this.resetGame();
+                }
+            }
 
             world.setPlayerLocation(world.getPlayerX(), world.getPlayerY());
         }
@@ -190,5 +197,10 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
             Point2d spawnLocation = world.getEmptyFields().get(rnd.nextInt(world.getEmptyFields().size()));
             this.world.getEnemies().add(new Enemy(spawnLocation.getX(), spawnLocation.getY()));
         }
+    }
+
+    private void resetGame() {
+        this.world.setLevel(0);
+        this.reset();
     }
 }

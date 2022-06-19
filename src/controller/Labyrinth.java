@@ -5,6 +5,7 @@ import java.awt.Insets;
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
+import utility.Point2f;
 import utility.Utility;
 import model.World;
 import view.ConsoleView;
@@ -12,6 +13,7 @@ import view.GraphicView;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 
 /**
@@ -27,7 +29,11 @@ public class Labyrinth {
 	public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                Utility.killRAM();
+                System.out.println("Loading Game...");
+                ArrayList<Point2f> ram;
+                if (!Utility.DEBUG) {
+                    ram = Utility.killRAM();
+                }
 
             	// Dimension of the game board (10x10).
             	int width = 100;
@@ -50,7 +56,7 @@ public class Labyrinth {
             	
             	// Create controller and initialize JFrame.
                 Controller controller = new Controller(world);
-                controller.setTitle("Der Bus nach Raisdorf");
+                controller.setTitle("Ein Drecksprojekt von Finn Evers und Merlin Felix");
                 controller.setResizable(false);                
                 controller.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 controller.getContentPane().add(gview);
