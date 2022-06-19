@@ -12,22 +12,50 @@ public class Point2d {
         this.y = y;
     }
 
-    public static Point2d RandomPoint2d(int maxX ,int maxY) {
+    public Point2d copy() {
+        return new Point2d(this.getX(), this.getY());
+    }
+
+    public static Point2d RandomPoint2d(int maxX, int maxY) {
         Random rnd = new Random();
         return new Point2d(rnd.nextInt(maxX), rnd.nextInt(maxY));
     }
 
-    public void addX(int x) { this.x += x; }
+    public void addX(int x) {
+        this.x += x;
+    }
 
-    public void addY(int y) { this.y += y; }
+    public void addY(int y) {
+        this.y += y;
+    }
 
-    public int getX() { return this.x; }
+    public int getX() {
+        return this.x;
+    }
 
-    public void setX(int x) { this.x = x; }
+    public void setX(int x) {
+        this.x = x;
+    }
 
-    public int getY() { return this.y; }
+    public int getY() {
+        return this.y;
+    }
 
-    public void setY(int y) { this.y = y; }
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public boolean inRangeOf(Point2d otherPoint, int range) {
+        range = Math.abs(range);
+        for (int xOffset = -range; xOffset <= range; xOffset++) {
+            for (int yOffset = -range; yOffset <= range; yOffset++) {
+                if (getX() + xOffset == otherPoint.getX() || getY() + yOffset == otherPoint.getY())
+                    return true;
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public String toString() {

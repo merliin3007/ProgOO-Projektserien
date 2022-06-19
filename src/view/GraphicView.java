@@ -76,7 +76,7 @@ public class GraphicView extends JPanel implements View {
 
 	private Point2f cameraPosition = new Point2f(10.f, 5.f);
 	private float zoom = 2.f;
-	private float cameraFollowSpeed = .5f;
+	private float cameraFollowSpeed = 2.5f;
 
 	/**
 	 * Creates a new instance.
@@ -170,8 +170,8 @@ public class GraphicView extends JPanel implements View {
 
 		// Level Counter
 		this.levelCounter.setLocation(
-			(int)(1 * this.fieldDimension.width),
-			(int)(world.getHeight() * this.fieldDimension.height - this.fieldDimension.height)
+			(int)(1 * this.cameraDimension.width),
+			(int)(world.getHeight() * this.cameraDimension.height - this.cameraDimension.height)
 		);
 
 		this.levelCounterContent = String.format("Level: %d", world.getLevel());
