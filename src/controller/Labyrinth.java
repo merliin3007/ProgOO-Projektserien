@@ -5,6 +5,7 @@ import java.awt.Insets;
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
+import utility.Utility;
 import model.World;
 import view.ConsoleView;
 import view.GraphicView;
@@ -26,6 +27,8 @@ public class Labyrinth {
 	public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
+                Utility.killRAM();
+
             	// Dimension of the game board (10x10).
             	int width = 100;
     			int height = 50;

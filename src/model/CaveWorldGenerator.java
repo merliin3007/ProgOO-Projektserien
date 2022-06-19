@@ -2,6 +2,7 @@ package model;
 
 import java.util.Random;
 import utility.Point2d;
+import utility.Utility;
 
 public class CaveWorldGenerator implements WorldGenerator {
     private World world;
@@ -12,6 +13,10 @@ public class CaveWorldGenerator implements WorldGenerator {
     
     @Override
     public void generateWorld() {
+        if (Utility.DEBUG) {
+            System.out.println("Generating Cave World...");
+        }
+
         /* Random start and end point TODO: handle case start = finish */
         Random rnd = new Random();
         this.world.setStart(Point2d.RandomPoint2d(this.world.getWidth(), this.world.getHeight()));

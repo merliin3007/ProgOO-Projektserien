@@ -1,15 +1,10 @@
 package model;
 
-import java.security.cert.PolicyNode;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Random;
 import java.util.Stack;
 
 import view.View;
-import model.Enemy;
-import model.CaveWorldGenerator;
-import model.PathWorldGenerator;
 import utility.Point2d;
 
 /**
@@ -67,20 +62,30 @@ public class World {
     private ArrayList<Point2d> emptyFields;
 
     private WorldGenerator worldGenerator;
+    private ArrayList<WorldGenerator> worldGenerators;
 
     /**
-     * Creates a new world with the given size.
+     * Creates a new world with the given height and width
+     * 
+     * @param width The width of the new world
+     * @param height The height of the new world.
      */
     public World(int width, int height) {
         // Normally, we would check the arguments for proper values
         this.width = width;
         this.height = height;
 
-        this.worldGenerator = new PathWorldGenerator(this);
+        this.worldGenerators = new ArrayList<WorldGenerator>();
+        this.worldGenerators.add(new PathWorldGenerator(this));
+        this.worldGenerators.add(new CaveWorldGenerator(this));
+        //this.worldGenerator = new PathWorldGenerator(this);
 
         this.resetWorld();
     }
 
+    /**
+     * Resets the world.
+     */
     public void resetWorld() {
         this.obstacleMap = new boolean[height][width];
         this.lightingMap = new float[height][width];
@@ -88,12 +93,13 @@ public class World {
 
         this.enemies = new ArrayList<Enemy>();
 
-        worldGenerator.generateWorld();
+        Random rnd = new Random();
+        this.worldGenerators.get(rnd.nextInt(this.worldGenerators.size())).generateWorld();
         this.generateLightingMap();
     }
 
     /**
-     * TODO: aufräumen :D
+     * Generates the lighting-map.
      */
     public void generateLightingMap() {
         /* Set empty fields to brightness 1.0f and obstacle fields to -1.0f */
@@ -116,10 +122,11 @@ public class World {
         int[][] directions = new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1}};
         while (s.size() != 0) {
             Point2d top = s.pop();
-            /*  */
+            /* Light this field if its not lit. */
             if (this.lightingMap[top.getY()][top.getX()] == -1.0f) {
                 int numLightedNeighbors = 0;
                 float lightingSum = 0.0f;
+                /* Calculate Lighting for this field. */
                 for (int[] dir : directions) {
                     int x = top.getX() + dir[0];
                     int y = top.getY() + dir[1];
@@ -131,11 +138,14 @@ public class World {
                         lightingSum += fieldVal;
                         numLightedNeighbors++;
                     } else {
+                        /* Push unlit neighbors to stack. */
                         s.push(new Point2d(x, y));
                     }
                 }
                 this.lightingMap[top.getY()][top.getX()] = (lightingSum / (float) numLightedNeighbors) * 0.95f;
+            /* This field is already lit af. */
             } else {
+                /* Push unlit neighbors to stack. */
                 for (int[] dir : directions) {
                     int x = top.getX() + dir[0];
                     int y = top.getY() + dir[1];
@@ -152,6 +162,10 @@ public class World {
     }
 
 	private long lastTime = System.nanoTime();
+
+    /**
+     * Called every 16ms.
+     */
 	public void timerTick(float time) {
 		// TODO: was mitm timer machen, weils geht
 
@@ -164,32 +178,52 @@ public class World {
         this.views.get(0).updateCamera(this, deltaTime);
     }
 
-    // Getters and Setters
-
+    /**
+     * TODO: aufräumen :D
+     */
+    /**
+     * Returns the width of the labyrinth-world.
+     * 
+     * @return The width of the world.
+     */
     public int getWidth() {
         return width;
     }
 
+    /**
+     * Returns the height of the labyrinth-world.
+     * 
+     * @return The height of the world.
+     */
     public int getHeight() {
         return height;
     }
 
+    /**
+     * Gets the x-position of the player.
+     * 
+     * @return The x-position of the player
+     */
     public int getPlayerX() {
         return playerX;
     }
 
-    // TODO remove
+    /**
+     * Sets the x-position of the player
+     * 
+     * @param playerX The new x-position
+     */
     public void setPlayerX(int playerX) {
-        /*
-         * border logic in controller
-         */
-        //playerX = Math.max(0, playerX);
-        //playerX = Math.min(getWidth() - 1, playerX);
         this.playerX = playerX;
 
         updateViews();
     }
 
+    /**
+     * Get the y-position of the player
+     * 
+     * @return The y-position of the player
+     */
     public int getPlayerY() {
         return playerY;
     }
@@ -206,14 +240,41 @@ public class World {
         updateViews();
     }
 
-    public boolean canMoveToField(int xPos, int yPos) {
-        if (xPos >= this.getWidth() || xPos < 0
-                || yPos >= this.getHeight() || yPos < 0) {
-            return false;
-        }
-        return !this.getField(xPos, yPos);
+    /**
+     * Checks whether the given point is within world boundaries
+     * @param pos The two-dimensional point to check
+     * @return True if within the field, false otherwise
+     */
+    public boolean isValidField(Point2d pos){
+        return isValidField(pos.getX(), pos.getY());
     }
 
+    /**
+     * Checks whether the given coordinates are within world boundaries
+     * @param xPos  The x-coordinate to check
+     * @param yPos  The y-coordinate to check
+     * @return True if within the field, false otherwise
+     */
+    public boolean isValidField(int xPos, int yPos) {
+        return !(xPos >= this.getWidth() || xPos < 0 || yPos >= this.getHeight() || yPos < 0);
+    }
+
+    /**
+     * Checks whether an entity can move to a given field.
+     * @param xPos The x-position of the field to check.
+     * @param yPos The y-position of the field to check.
+     * @return True if within the world and no collision occurs, false otherwise.
+     */
+    public boolean canMoveToField(int xPos, int yPos) {
+        return isValidField(xPos, yPos) && !this.getField(xPos, yPos);
+    }
+
+    /**
+     * Calculates the collisions around a given field
+     * @param xPos  The x-coordinate of the field to check
+     * @param yPos  The y-coordinate of the field to check
+     * @return The amount of fields with collisions around the given field, so a number inbetween 0 and 4.
+     */
     public int collisionAroundField(int xPos, int yPos) {
         int sum = 0;
         for (MovementDirection move : MovementDirection.values()) {
@@ -314,15 +375,24 @@ public class World {
     public int getFinishY() {
         return this.finishY;
     }
-
+    /**
+     * Returns the reference to the Arraylist of two-dimensional points of fields without collision.
+     * @return An Arraylist of the collision-free points.
+     */
     public final ArrayList<Point2d> getEmptyFields() {
         return this.emptyFields;
     }
-
+    /**
+     * Returns the list of enemy-objects.
+     * @return An ArrayList of enemies.
+     */
     public ArrayList<Enemy> getEnemies() {
         return this.enemies;
     }
-
+    /**
+     * Returns the obstacle-map of the labyrinth-world.
+     * @return The obstacleMap where a true value implies an obstacle is at that position.
+     */
     public boolean[][] getObstacleMap() {
         return this.obstacleMap;
     }
@@ -330,15 +400,23 @@ public class World {
     public float[][] getLightingMap() {
         return this.lightingMap;
     }
-
+    /**
+     * Returns the current level of the world.
+     * @return The current level of the world.
+     */
     public int getLevel() {
         return this.level;
     }
-
+    /**
+     * Sets the level of the world, as long as the provided level is bigger than 0
+     * @param level The level to set.
+     */
     public void setLevel(int level) {
         this.level = level < 0 ? 0 : level;
     }
-
+    /**
+     * Increases the level of the world by 1.
+     */
     public void incLevel() {
         this.level++;
     }
@@ -435,16 +513,26 @@ public class World {
             views.get(i).update(this);
         }
     }
-
-    private static String pointToString(final int x, final int y) {
-        return String.format("%d,%d", x, y);
-    }
-
-    private static double getDistance(Point2d p1, Point2d p2) {
+    /**
+     * Calculates the (diagonal) distance inbetween two two-dimensional points.
+     * 
+     * @param p1 The first point
+     * @param p2 The second point
+     * @return The (diagonal) distance inbetween these points.
+     */
+    static double getDistance(Point2d p1, Point2d p2) {
         return getDistance(p1.getX(), p1.getY(), p2.getX(), p2.getY());
     }
-
-    private static double getDistance(final int x1, final int y1, final int x2, final int y2) {
+    /**
+     * Calculates the (diagonal) distance inbetween two two-dimensional points, given by their coordinates.
+     * 
+     * @param x1 The x-coordinate of the first point.
+     * @param y1 The y-coordinate of the first point.
+     * @param x2 The x-coordinate of the second point.
+     * @param y2 The y-coordinate of the second point.
+     * @return
+     */
+    static double getDistance(final int x1, final int y1, final int x2, final int y2) {
         return Math.sqrt(Math.pow(y1 - y2, 2.0) + Math.pow(x1 - x2, 2.0));
     }
 }

@@ -181,6 +181,7 @@ public class GraphicView extends JPanel implements View {
 
 	@Override
 	public void updateCamera(World world, float deltaTime) {
+		/* Update zoom. */
 		this.zoom = 1.f + (float)Math.log((double)world.getLevel()) * 0.5f;
 		this.cameraDimension.setSize((double)(this.fieldDimension.getWidth() * this.zoom), (double)(this.fieldDimension.getHeight() * this.zoom));
 
@@ -203,30 +204,41 @@ public class GraphicView extends JPanel implements View {
 			moveY = dir * Math.abs((float)this.player.getLocation().getY() - viewCenterY) * this.cameraFollowSpeed * deltaTime;
 		}
 
+		/* Move the camera. */
 		this.move(moveX, moveY);
 
-		System.out.println(this.cameraPosition);
-		System.out.println(this.getWidth());
-		System.out.println(1.f / (deltaTime / 10.f));
-		System.out.println(this.zoom);
-
 		/* limit scene x */
+		float factorX = (float)(this.fieldDimension.getWidth() - this.cameraDimension.getWidth()) * world.getWidth();
 		if ((int)this.cameraPosition.getX() > 0) {
 			this.cameraPosition.setX(0.f);
-		} else if (this.cameraPosition.getX() < -this.getWidth() * (this.zoom - 1.f)) {
-			this.cameraPosition.setX((int)(-this.getWidth() * (this.zoom - 1.f)));
+		} else if (this.cameraPosition.getX() < factorX) {
+			this.cameraPosition.setX(factorX);
 		}
-
+		
 		/* limit scene y */
+		float factorY = (float)(this.fieldDimension.getHeight() - this.cameraDimension.getHeight()) * world.getHeight();
 		if (this.cameraPosition.getY() > 0.f) {
 			this.cameraPosition.setY(0.f);
-		} else if (this.cameraPosition.getY() < -this.getHeight() * (this.zoom - 1.f)) {
-			this.cameraPosition.setY(-this.getHeight() * (this.zoom - 1.f));
+		} else if (this.cameraPosition.getY() < factorY) {
+			this.cameraPosition.setY(factorY);
+		}
+
+		if (Utility.DEBUG_GRAPHICS) {
+			System.out.println("Camera Position: " + this.cameraPosition.toString());
+			System.out.println("Window Width: " + String.valueOf(this.getWidth()) + " Window Height: " + String.valueOf(this.getHeight()));
+			System.out.println("Fps: " + String.valueOf(1.f / (deltaTime / 10.f)));
+			System.out.println("Zoom: " + String.valueOf(this.zoom));
 		}
 
 		this.update(world);
 	}
 
+	/**
+	 * Moves the camera.
+	 * 
+	 * @param dirX the amount the camera should move on the x-axis.
+	 * @param dirY the amount the camera should move on the y-axis.
+	 */
 	private void move(float dirX, float dirY) {
 		this.cameraPosition.addX(dirX);
 		this.cameraPosition.addY(dirY);
