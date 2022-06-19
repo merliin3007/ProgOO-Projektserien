@@ -19,29 +19,35 @@ import java.awt.event.ActionListener;
  */
 public class Labyrinth {
 
+    public static final int fieldDimensionX = 15;       // Default: 25
+    public static final int fieldDimensionY = 15;       // Default: 25
+    public static boolean enableConsoleView = false;    // Default: true
+
 	public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
             	// Dimension of the game board (10x10).
-            	int width = 25;
-    			int height = 25;
+            	int width = 100;
+    			int height = 50;
     			// Create a new game world.
             	World world = new World(width, height);
             	
             	// Size of a field in the graphical view.
-            	Dimension fieldDimensions = new Dimension(25, 25);
+            	Dimension fieldDimensions = new Dimension(fieldDimensionX, fieldDimensionY);
             	// Create and register graphical view.
             	GraphicView gview = new GraphicView(width * fieldDimensions.width, height * fieldDimensions.height, fieldDimensions);
             	world.registerView(gview);
                 gview.setVisible(true);
             	
             	// Create and register console view.
-        		ConsoleView cview = new ConsoleView();
-            	world.registerView(cview);
+                if (Labyrinth.enableConsoleView) {
+        		    ConsoleView cview = new ConsoleView();
+            	    world.registerView(cview);
+                }
             	
             	// Create controller and initialize JFrame.
                 Controller controller = new Controller(world);
-                controller.setTitle("Square Move Practice");
+                controller.setTitle("Der Bus nach Raisdorf");
                 controller.setResizable(false);                
                 controller.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 controller.getContentPane().add(gview);

@@ -47,15 +47,6 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
     public void updateEnemies() {
         for (Enemy enemy : world.getEnemies()) {
 
-			/*
-			Point2d moveTo = this.findFirstPath(enemy.getPositionX(), enemy.getPositionY(), world.getPlayerX(), world.getPlayerY());
-			if (moveTo.getPosX() != enemy.getPositionX() || moveTo.getPosY() != enemy.getPositionY()) {
-				enemy.setPositionX(moveTo.getPosStartX());
-				enemy.setPositionY(moveTo.getPosStartY());
-				System.out.println("jajaja");
-				continue;
-			}*/
-
             int distanceX = world.getPlayerX() - enemy.getPositionX();
             int distanceY = enemy.getPositionY() - world.getPlayerY();
 

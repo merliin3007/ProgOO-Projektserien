@@ -15,4 +15,7 @@ public interface View {
 	 */
 	void update(World world);
 
+	boolean getIsEnabled();
+
+	void setIsEnabled(boolean isEnabled);
 }

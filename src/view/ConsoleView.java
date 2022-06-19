@@ -11,8 +11,14 @@ import model.Enemy;
  */
 public class ConsoleView implements View {
 
+	boolean isEnabled = true;
+
 	@Override
 	public void update(World world) {
+		if (!isEnabled) {
+			return;
+		}
+
 		Console.clear();
 		
 		// The player's position
@@ -46,5 +52,11 @@ public class ConsoleView implements View {
 		// A newline between every update
 		System.out.println();
 	}
+
+	@Override
+	public boolean getIsEnabled() { return this.isEnabled; }
+
+	@Override
+	public void setIsEnabled(boolean isEnabled) { this.isEnabled = isEnabled; }
 
 }

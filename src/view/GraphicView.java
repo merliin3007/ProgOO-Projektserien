@@ -64,11 +64,16 @@ public class GraphicView extends JPanel implements View {
 	/** The global brighness. */
 	private final Lighting globalLighting = new Lighting(1.0f);
 
+	private boolean isEnabled = true;
+
 	/**
 	 * Creates a new instance.
 	 */
 	@Override
 	public void paint(Graphics g) {
+		if (!isEnabled) {
+			return;
+		}
 
 		/* Game */
 
@@ -101,6 +106,9 @@ public class GraphicView extends JPanel implements View {
 
 	@Override
 	public void update(World world) {
+		if (!isEnabled) {
+			return;
+		}
 
 		/* Game */
 
@@ -158,5 +166,11 @@ public class GraphicView extends JPanel implements View {
 
 		repaint();
 	}
+
+	@Override
+	public boolean getIsEnabled() { return this.isEnabled; }
+
+	@Override
+	public void setIsEnabled(boolean isEnabled) { this.isEnabled = isEnabled; }
 	
 }

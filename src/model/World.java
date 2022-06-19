@@ -64,8 +64,8 @@ public class World {
 	}
 
 	public void resetWorld() {
-		this.obstacleMap = new boolean[width][height];
-		this.lightingMap = new float[width][height];
+		this.obstacleMap = new boolean[height][width];
+		this.lightingMap = new float[height][width];
 		this.emptyFields = new ArrayList<Point2d>();
 
 		this.enemies = new ArrayList<Enemy>();
@@ -85,7 +85,7 @@ public class World {
 	 */
 	public void generateLightingMap() {
 		for (int i = 0; i < this.width; ++i) {
-			for (int j = 0; j < this.width; ++j) {
+			for (int j = 0; j < this.height; ++j) {
 				if (this.obstacleMap[j][i]) {
 					this.lightingMap[j][i] = -1.0f;
 				} else {
