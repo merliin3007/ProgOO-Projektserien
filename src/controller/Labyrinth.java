@@ -23,8 +23,8 @@ public class Labyrinth {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
             	// Dimension of the game board (10x10).
-            	int width = 10;
-    			int height = 10;
+            	int width = 25;
+    			int height = 25;
     			// Create a new game world.
             	World world = new World(width, height);
             	
@@ -63,12 +63,13 @@ public class Labyrinth {
 
 
                 ActionListener actionListener = new ActionListener() {
-
+                    float time = 0.0f;
                     public void actionPerformed(ActionEvent actionEvent) {
-                        world.timerTick();
+                        world.timerTick(time);
+                        time += 0.01f; // TODO: measure delta time
                     }
                 };
-                Timer timer = new Timer(500, actionListener);
+                Timer timer = new Timer(5, actionListener);
                 timer.start();
             }
         });

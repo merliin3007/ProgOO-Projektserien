@@ -1,10 +1,14 @@
 package model;
 
+import java.security.cert.PolicyNode;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Stack;
 
 import view.View;
 import model.Enemy;
+import utility.Point2d;
 
 /**
  * The world is our model. It saves the bare minimum of information required to
@@ -36,15 +40,18 @@ public class World {
 	private int startY = 0;
 
 	/* The x and y position of the finish field. */
-	private int finishX = 0;
-	private int finishY = 0;
+	private int finishX = 9;
+	private int finishY = 9;
 
 	/** Set of views registered to be notified of world updates. */
 	private final ArrayList<View> views = new ArrayList<>();
 
 	/** creates a map of obstacles for the labyrinth, where "true" is an obstacle */
 	private boolean[][] obstacleMap;
-	private byte[][] playerTailMap;
+	private float[][] lightingMap;
+	private float globalBrightness = 1.0f;
+	private ArrayList<Point2d> emptyFields; 
+
 	/**
 	 * Creates a new world with the given size.
 	 */
@@ -52,49 +59,179 @@ public class World {
 		// Normally, we would check the arguments for proper values
 		this.width = width;
 		this.height = height;
+
+		this.resetWorld();
+	}
+
+	public void resetWorld() {
 		this.obstacleMap = new boolean[width][height];
-		this.playerTailMap = new byte[width][height];
+		this.lightingMap = new float[width][height];
+		this.emptyFields = new ArrayList<Point2d>();
 
 		this.enemies = new ArrayList<Enemy>();
-		
-		/* This is some ugly temporary stuff dude */
-		/*
-		for (int i = 0; i < width; ++i) {
-			for (int j = 0; j < height; ++j) {
-				if(((i == 0 || i == width - 1)&& j % 2 == 0 )||((j == 0 || j == height - 1)&& i % 2 == 0 ) )
-					this.obstacleMap[i][j] = true;
-			}
-		}*/
-
-		//if (true) return;
 
 		Random rnd = new Random();
-		for (int i = 0; i < this.getWidth() * this.getHeight() * this.level; ++i) {
-			for (int x = rnd.nextInt(this.getWidth() - 1), y = rnd.nextInt(this.getHeight() - 1);;) {
-				MovementDirection dir = MovementDirection.UP;
-				switch(rnd.nextInt(4)) {
-				case 0: dir = MovementDirection.UP; break;
-				case 1: dir = MovementDirection.DOWN; break;
-				case 2: dir = MovementDirection.LEFT; break;
-				case 3: dir = MovementDirection.RIGHT; break;
-				}
-				x += dir.deltaX;
-				y += dir.deltaY;
-				if (x < 0 || x >= this.getWidth() || y < 0 || y >= this.getHeight()) {
-					break;
-				} else if (this.getField(x + dir.deltaX, y + dir.deltaX) || this.getField(x + dir.deltaX * 2, y + dir.deltaY * 2)) {
-					break;
-				} else if (false) {
-					break;
+		this.startX = rnd.nextInt(this.width);
+		this.startY = rnd.nextInt(this.height);
+		this.finishX = rnd.nextInt(this.width);
+		this.finishY = rnd.nextInt(this.height);
+
+		this.generateWorld();
+		this.generateLightingMap();
+	}
+
+	/**
+	 * TODO: aufräumen :D
+	 */
+	public void generateLightingMap() {
+		for (int i = 0; i < this.width; ++i) {
+			for (int j = 0; j < this.width; ++j) {
+				if (this.obstacleMap[j][i]) {
+					this.lightingMap[j][i] = -1.0f;
 				} else {
-					this.setObstacleInField(x + dir.deltaX, y + dir.deltaY);
+					this.lightingMap[j][i] = 1.0f;
+				}
+			}
+		}
+
+		Stack<Point2d> s = new Stack<Point2d>();
+		for (Point2d p : this.emptyFields) {
+			s.push(p);
+		}
+
+		int[][] directions = new int[][] { {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
+		while (s.size() != 0) {
+			Point2d top = s.pop();
+			if (this.lightingMap[top.getY()][top.getX()] == -1.0f) {
+				int numLightedNeighbors = 0;
+				float lightingSum = 0.0f;
+				for (int[] dir : directions) {
+					int x = top.getX() + dir[0];
+					int y = top.getY() + dir[1];
+					if (x < 0 || x >= this.getWidth() || y < 0 || y >= this.getHeight()) {
+						continue;
+					}
+					float fieldVal = this.lightingMap[y][x];
+					if (fieldVal != -1.0f) {
+						lightingSum += fieldVal;
+						numLightedNeighbors++;
+					} else {
+						s.push(new Point2d(x, y));
+					}
+				}
+				this.lightingMap[top.getY()][top.getX()] = (lightingSum / (float)numLightedNeighbors) * 0.95f;
+			} else {
+				for (int[] dir : directions) {
+					int x = top.getX() + dir[0];
+					int y = top.getY() + dir[1];
+					if (x < 0 || x >= this.getWidth() || y < 0 || y >= this.getHeight()) {
+						continue;
+					}
+					float fieldVal = this.lightingMap[y][x];
+					if (fieldVal == -1.0f) {
+						s.push(new Point2d(x, y));
+					}
 				}
 			}
 		}
 	}
 
-	public void timerTick() {
+	/**
+	 * TODO: in eigene Klasse auslagern (mit digRandomPath())
+	 */
+	public void generateWorld() {
+		/* Fill the whole map with obstacles */
+		for (int i = 0; i < this.getWidth(); ++i) {
+			for (int j = 0; j < this.getHeight(); ++j) {
+				this.obstacleMap[j][i] = true;
+			}
+		}
+		/* Create a path from start to finish */
+		int currentX = this.startX, currentY = this.startY;
+		this.obstacleMap[currentY][currentX] = false;
+		while (this.obstacleMap[this.finishY][this.finishX]) {
+			int[][] directions = new int[][] { {1, 0},  {-1, 0}, {0, 1}, {0, -1} };
+			utility.Utility.shuffleArray(directions);
+			/* try to move to a field that hasn't been visited yet */
+			boolean hasMoved = false;
+			for (int[] dir : directions) {
+				int newX = currentX + dir[0], newY = currentY + dir[1];
+				if (newX < 0 || newX >= this.getWidth() || newY < 0 || newY >= this.getHeight() || !this.obstacleMap[newY][newX]) {
+					continue;
+				} else {
+					obstacleMap[newY][newX] = false;
+					this.emptyFields.add(new Point2d(newX, newY));
+					currentX = newX;
+					currentY = newY;
+					hasMoved = true;
+					break;
+				}
+			}
+			/* if no (new) move possible -> move directly towards finish */
+			if (!hasMoved) {
+				int distX = finishX - currentX;
+				int distY = finishY - currentY;
+				if (Math.abs(distX) >= Math.abs(distY)) {
+					currentX += distX > 0 ? 1 : -1;
+				} else {
+					currentY += distY > 0 ? 1 : -1;
+				}
+			}
+		}
+
+		int upperBound = this.width * this.height / 4;
+		int numRandomPaths = upperBound * this.emptyFields.size();
+		Random rnd = new Random();
+		for (int i = 0; i < numRandomPaths && this.getEmptyFields().size() < upperBound; ++i) {
+			digRandomPath(rnd.nextInt((int)((this.width * this.height) / 50)));
+		}
+	}
+
+	public void digRandomPath(int pathLen) {
+		Point2d current = Point2d.RandomPoint2d(this.width, this.height);
+		for (int i = 0; i < pathLen; ++i) {
+			int[][] directions = new int[][] { {1, 0},  {-1, 0}, {0, 1}, {0, -1} };
+			utility.Utility.shuffleArray(directions);
+			/* try to move to a field that hasn't been visited yet */
+			boolean hasMoved = false;
+			for (int[] dir : directions) {
+				int newX = current.getX() + dir[0], newY = current.getY() + dir[1];
+				if (newX < 0 || newX >= this.getWidth() || newY < 0 || newY >= this.getHeight()) {
+					continue;
+				} else if (!this.obstacleMap[newY][newX]) {
+					continue;
+				} else {
+					obstacleMap[newY][newX] = false;
+					this.emptyFields.add(new Point2d(newX, newY));
+					current.setX(newX);
+					current.setY(newY);
+					hasMoved = true;
+					break;
+				}
+			}
+			if (!hasMoved) {
+				break;
+			}
+		}
+
+		Random rnd = new Random();
+		while (this.obstacleMap[current.getY()][current.getX()]) {
+			if (rnd.nextBoolean()) {
+				int distX = startX - current.getX();
+				int distY = startY - current.getY();
+				if (Math.abs(distX) >= Math.abs(distY)) {
+					current.addX(distX > 0 ? 1 : -1);
+				} else {
+					current.addY(distY > 0 ? 1 : -1);
+				}
+			}
+		}
+	}
+
+	public void timerTick(float time) {
 		// TODO: was mitm timer machen, weils geht
+		this.globalBrightness = 1.0f - ((float)Math.sin((double)time) + 1.0f) / 10.0f;
+		this.views.get(0).update(this);
 	}
 
 	// Getters and Setters
@@ -185,9 +322,21 @@ public class World {
 	*/
 	public int getFinishY() { return this.finishY; }
 
+	public final ArrayList<Point2d> getEmptyFields() { return this.emptyFields; }
+
 	public ArrayList<Enemy> getEnemies() { return this.enemies; }
 
 	public boolean[][] getObstacleMap() { return this.obstacleMap; }
+
+	public float[][] getLightingMap() { return this.lightingMap; }
+
+	public int getLevel() { return this.level; }
+
+	public void setLevel(int level ) { this.level = level < 0 ? 0 : level; }
+
+	public void incLevel() { this.level++; }
+
+	public float getGlobalBrightness() { return this.globalBrightness; }
 
 	/**
 	 * returns whether the checked field has a collision object in it
@@ -223,7 +372,7 @@ public class World {
 	 * @param xPos	The x-coordinate
 	 * @param yPos	The y-coordinate
 	 */
-	public void setPlayerLocation(int xPos, int yPos) {
+	public void setPlayerLocation(final int xPos, final int yPos) {
 		setPlayerX(xPos);
 		setPlayerY(yPos);
 	}
@@ -251,4 +400,11 @@ public class World {
 		}
 	}
 
+	private static String pointToString(final int x, final int y) {
+		return String.format("%d,%d", x, y);
+	}
+
+	private static double getDistance(final int x1, final int y1, final int x2, final int y2) {
+		return Math.sqrt(Math.pow(y1 + y2, 2.0) + Math.pow(x1 + x2, 2.0));
+	}
 }

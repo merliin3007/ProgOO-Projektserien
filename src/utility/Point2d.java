@@ -1,73 +1,36 @@
 package utility;
 
-/**
- * A point
- * with four integers
- */
+import java.security.cert.PolicyNode;
+import java.util.Random;
+
 public class Point2d {
+    private int x;
+    private int y;
 
-    private int xpos;
-    private int ypos;
-    private int startXpos;
-    private int startYpos;
-    private int pathLength;
-
-    /**
-     * @param x the x coordinate
-     * @param y the y coordinate
-     * @param startX the x start coordinate
-     * @param startY the y start coordinate
-     * @param pathLength the length of se path
-     */
-    public Point2d(int x, int y, int startX, int startY, int pathLength) {
-        this.xpos = x;
-        this.ypos = y;
-        this.startXpos = startX;
-        this.startYpos = startY;
-        this.pathLength = pathLength;
+    public Point2d(int x, int y) {
+        this.x = x;
+        this.y = y;
     }
 
-    public void setPosX(int x) {
-        this.xpos = x;
+    public static Point2d RandomPoint2d(int maxX ,int maxY) {
+        Random rnd = new Random();
+        return new Point2d(rnd.nextInt(maxX), rnd.nextInt(maxY));
     }
 
-    public void setPosY(int y) {
-        this.ypos = y;
-    }
-    
-    public void setPosStartX(int x) {
-        this.startXpos = x;
-    }
+    public void addX(int x) { this.x += x; }
 
-    public void setPosStartY(int y) {
-        this.startYpos = y;
-    }
+    public void addY(int y) { this.y += y; }
 
-    public void setPathLength(int l) {
-        this.pathLength = l;
-    }
+    public int getX() { return this.x; }
 
-    public int getPosX() {
-        return this.xpos;
-    }
+    public void setX(int x) { this.x = x; }
 
-    public int getPosY() {
-        return this.ypos;
-    }
+    public int getY() { return this.y; }
 
-    public int getPosStartX() {
-        return this.startXpos;
-    }
+    public void setY(int y) { this.y = y; }
 
-    public int getPosStartY() {
-        return this.startYpos;
-    }
     @Override
     public String toString() {
-        return "{ "  + this.getPosX() + ", " + this.getPosY() + ", " + this.getPosStartX() + ", " + this.getPosStartY() + " }";
-    }
-
-    public int getPathLength() {
-        return this.pathLength;
+        return String.format("(%d, %d)", this.x, this.y);
     }
 }

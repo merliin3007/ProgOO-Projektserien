@@ -3,10 +3,10 @@ package utility;
 import java.util.Random;
 
 public class Utility {
-    public static void shuffleArray(byte[][] array)
+    public static <T> void shuffleArray(T[] array)
     {
         int index;
-        byte[] temp;
+        T temp;
         Random random = new Random();
         for (int i = array.length - 1; i > 0; i--)
         {

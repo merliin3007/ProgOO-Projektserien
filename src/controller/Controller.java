@@ -8,9 +8,8 @@ import view.View;
 
 import javax.swing.*;
 import java.awt.event.*;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Stack;
+import java.util.Random;
 
 
 /**
@@ -36,7 +35,7 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
     public Controller(World world) {
         // Remember the world
         this.world = world;
-        world.getEnemies().add(new Enemy(0, 0));
+        this.world.setPlayerLocation(this.world.getStartX(), this.world.getStartY());
 
         // Listen for key events
         addKeyListener(this);
@@ -91,50 +90,6 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
         }
     }
 
-    public Point2d findFirstPath(int fromX, int fromY, int toX, int toY) {
-        /**
-         * TODO: Djikstra
-         */
-        Stack<Point2d> stack = new Stack<Point2d>();
-        //stack.push(new Point2d(fromX, fromY, -1, -1));
-        // TODO remove
-        //Point2d init = new Point2d(fromX, fromY, -1, -1);
-        stack.push(new Point2d(fromX, fromY + 1, fromX, fromY + 1, 0));
-        stack.push(new Point2d(fromX + 1, fromY + 1, fromX + 1, fromY + 1, 0));
-        stack.push(new Point2d(fromX - 1, fromY + 1, fromX - 1, fromY + 1, 0));
-        stack.push(new Point2d(fromX, fromY - 1, fromX, fromY - 1, 0));
-        stack.push(new Point2d(fromX + 1, fromY - 1, fromX + 1, fromY - 1, 0));
-        stack.push(new Point2d(fromX - 1, fromY - 1, fromX - 1, fromY - 1, 0));
-        stack.push(new Point2d(fromX + 1, fromY, fromX + 1, fromY, 0));
-        stack.push(new Point2d(fromX - 1, fromY, fromX - 1, fromY, 0));
-        HashSet<String> visited = new HashSet<String>();
-        Point2d currentShortest = new Point2d(fromX, fromY, fromX, fromY, Integer.MAX_VALUE);
-        while (stack.size() != 0) {
-            Point2d top = stack.pop();
-            if (!visited.contains(top.toString()) && canMoveToField(top.getPosX(), top.getPosY())) {
-                System.out.println(String.valueOf(top.getPosX()) + "," + String.valueOf(top.getPosY()));
-                System.out.println(top.toString());
-                visited.add(top.toString());
-                if (toX == top.getPosX() && toY == top.getPosY()) {
-                    if (top.getPathLength() <= currentShortest.getPathLength()) {
-                        currentShortest = top;
-                    }
-                    continue;
-                }
-                stack.push(new Point2d(top.getPosX(), top.getPosY() + 1, top.getPosStartX(), top.getPosStartY(), top.getPathLength() + 1));
-                stack.push(new Point2d(top.getPosX(), top.getPosY() - 1, top.getPosStartX(), top.getPosStartY(), top.getPathLength() + 1));
-                stack.push(new Point2d(top.getPosX() + 1, top.getPosY() + 1, top.getPosStartX(), top.getPosStartY(), top.getPathLength() + 1));
-                stack.push(new Point2d(top.getPosX() - 1, top.getPosY() + 1, top.getPosStartX(), top.getPosStartY(), top.getPathLength() + 1));
-                stack.push(new Point2d(top.getPosX() + 1, top.getPosY() - 1, top.getPosStartX(), top.getPosStartY(), top.getPathLength() + 1));
-                stack.push(new Point2d(top.getPosX() - 1, top.getPosY() - 1, top.getPosStartX(), top.getPosStartY(), top.getPathLength() + 1));
-                stack.push(new Point2d(top.getPosX() + 1, top.getPosY(), top.getPosStartX(), top.getPosStartY(), top.getPathLength() + 1));
-                stack.push(new Point2d(top.getPosX() - 1, top.getPosY(), top.getPosStartX(), top.getPosStartY(), top.getPathLength() + 1));
-            }
-        }
-        System.out.print(currentShortest.toString() + " " + currentShortest.getPathLength());
-        return currentShortest;
-    }
-
     @Override
     public void keyTyped(KeyEvent e) {
         // TODO Auto-generated method stub
@@ -174,6 +129,10 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
                 world.setPlayerLocation(newLocationX, newLocationY);
             } else {
                 System.out.println("Da ist ne Wand!");
+            }
+
+            if (world.getPlayerX() == world.getFinishX() && world.getPlayerY() == world.getFinishY()) {
+                this.reset();
             }
 
             if (enemy_timout) {
@@ -246,5 +205,16 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
                 sum++;
         }
         return sum;
+    }
+
+    private void reset() {
+        Random rnd = new Random();
+        this.world.incLevel();
+        this.world.resetWorld();
+        this.world.setPlayerLocation(this.world.getStartX(), this.world.getStartY());
+        for (int i = 0; i < 1 + (int)(this.world.getLevel() / 10); ++i) {
+            Point2d spawnLocation = world.getEmptyFields().get(rnd.nextInt(world.getEmptyFields().size()));
+            this.world.getEnemies().add(new Enemy(spawnLocation.getX(), spawnLocation.getY()));
+        }
     }
 }
