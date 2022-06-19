@@ -10,9 +10,13 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import javax.swing.plaf.DimensionUIResource;
+
 import java.awt.image.BufferedImage;
 
+import utility.Utility;
 import utility.Lighting;
+import utility.Point2f;
 import model.World;
 import model.Enemy;
 
@@ -26,7 +30,7 @@ public class GraphicView extends JPanel implements View {
 	/** The view's height. */
 	private final int HEIGHT;
 	/** The scaling factor. */
-	private Dimension fieldDimension;
+	private Dimension fieldDimension, cameraDimension;
 
 	BufferedImage playerTexture;
 	BufferedImage houseTexture;
@@ -35,6 +39,10 @@ public class GraphicView extends JPanel implements View {
 		this.WIDTH = width;
 		this.HEIGHT = height;
 		this.fieldDimension = fieldDimension;
+		this.cameraDimension = new Dimension(
+			(int)(fieldDimension.getWidth() * this.zoom), 
+			(int)(fieldDimension.getHeight() * this.zoom)
+		);
 		this.bg = new Rectangle(WIDTH, HEIGHT);
 
 		try {
@@ -65,6 +73,10 @@ public class GraphicView extends JPanel implements View {
 	private final Lighting globalLighting = new Lighting(1.0f);
 
 	private boolean isEnabled = true;
+
+	private Point2f cameraPosition = new Point2f(10.f, 5.f);
+	private float zoom = 2.f;
+	private float cameraFollowSpeed = 2.5f;
 
 	/**
 	 * Creates a new instance.
@@ -114,10 +126,10 @@ public class GraphicView extends JPanel implements View {
 
 		this.globalLighting.setVal(world.getGlobalBrightness());
 		// Update Finish Field
-		finishField.setSize(fieldDimension);
+		finishField.setSize(cameraDimension);
 		finishField.setLocation(
-			(int)(world.getFinishX() * fieldDimension.width),
-			(int)(world.getFinishY() * fieldDimension.height)
+			(int)(world.getFinishX() * cameraDimension.width),
+			(int)(world.getFinishY() * cameraDimension.height)
 		);
 		// Update obstacles
 		this.obstacles.clear();
@@ -126,10 +138,10 @@ public class GraphicView extends JPanel implements View {
 			for (int j = 0; j < world.getObstacleMap()[i].length; ++j) {
 				if (world.getObstacleMap()[i][j]) {
 					Rectangle obstacle = new Rectangle(1, 1);
-					obstacle.setSize(fieldDimension);
+					obstacle.setSize(this.cameraDimension);
 					obstacle.setLocation(
-						(int)(j * fieldDimension.width),
-						(int)(i * fieldDimension.height)
+						(int)((j * cameraDimension.width) + this.cameraPosition.getX()),
+						(int)((i * cameraDimension.height) + this.cameraPosition.getY())
 					);
 					this.obstacles.add(obstacle);
 					this.obstacleBrighness.add(new Lighting(world.getLightingMap()[i][j] * world.getGlobalBrightness()));
@@ -137,19 +149,19 @@ public class GraphicView extends JPanel implements View {
 			}
 		}
 		// Update players size and location
-		player.setSize(fieldDimension);
+		player.setSize(cameraDimension);
 		player.setLocation(
-			(int)(world.getPlayerX() * fieldDimension.width),
-			(int)(world.getPlayerY() * fieldDimension.height)
+			(int)(world.getPlayerX() * cameraDimension.width),
+			(int)(world.getPlayerY() * cameraDimension.height)
 		);
 		// Update enemies
 		this.enemies.clear();
 		for (Enemy enemy : world.getEnemies()) {
 			Rectangle enemyRectangle = new Rectangle(1, 1);
-			enemyRectangle.setSize(fieldDimension);
+			enemyRectangle.setSize(cameraDimension);
 			enemyRectangle.setLocation(
-				(int)(enemy.getPositionX() * fieldDimension.width),
-				(int)(enemy.getPositionY() * fieldDimension.height)
+				(int)(enemy.getPositionX() * cameraDimension.width),
+				(int)(enemy.getPositionY() * cameraDimension.height)
 			);
 			this.enemies.add(enemyRectangle);
 		}
@@ -158,13 +170,32 @@ public class GraphicView extends JPanel implements View {
 
 		// Level Counter
 		this.levelCounter.setLocation(
-			(int)(1 * this.fieldDimension.width),
-			(int)(world.getHeight() * this.fieldDimension.height - this.fieldDimension.height)
+			(int)(1 * this.cameraDimension.width),
+			(int)(world.getHeight() * this.cameraDimension.height - this.cameraDimension.height)
 		);
 
 		this.levelCounterContent = String.format("Level: %d", world.getLevel());
 
 		repaint();
+	}
+
+	@Override
+	public void updateCamera(World world, float deltaTime) {
+		float sceneMinX = -1000000.f;
+		float sceneMaxX = 1000000.f;
+		// x
+        float center_offset = (1.f / this.zoom) / 2.f;
+        float view_center_x = this.cameraPosition.getX() + center_offset;
+        if (utility.Utility.floatcmp((float)(world.getPlayerX()), view_center_x, 0.00001f))
+            return;
+        float dir = world.getPlayerX() < view_center_x ? -1.f : 1.f;
+        float border_diff = dir == -1.f ? Math.abs(view_center_x - sceneMaxX) : Math.abs(view_center_x - sceneMaxX);
+        this.move(dir * Math.abs(world.getPlayerX() - view_center_x) * this.cameraFollowSpeed * deltaTime, 0.f);
+	}
+
+	private void move(float dirX, float dirY) {
+		this.cameraPosition.addX(dirX);
+		this.cameraPosition.addY(dirY);
 	}
 
 	@Override

@@ -67,7 +67,7 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
                     newPosValues[0] = enemy.getPositionX();
                     newPosValues[1] = enemy.getPositionY() + (distanceY > 0 == moveTowardsPlayer ? -1 : 1);
                 }
-                if (canMoveToField(newPosValues[0], newPosValues[1]) && 3 > collisionAroundField(newPosValues[0], newPosValues[1])) {
+                if (world.canMoveToField(newPosValues[0], newPosValues[1]) && 3 > world.collisionAroundField(newPosValues[0], newPosValues[1])) {
                     if (handleXFirst)
                         enemy.setPositionX(newPosValues[0]);
                     else
@@ -116,7 +116,7 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
             }
 
             int newLocationX = world.getPlayerX() + dir.deltaX, newLocationY = world.getPlayerY() + dir.deltaY;
-            if (canMoveToField(newLocationX, newLocationY)) {
+            if (world.canMoveToField(newLocationX, newLocationY)) {
                 world.setPlayerLocation(newLocationX, newLocationY);
             } else {
                 System.out.println("Da ist ne Wand!");
@@ -179,23 +179,6 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
     public void mouseExited(MouseEvent e) {
         // TODO Auto-generated method stub
 
-    }
-
-    private boolean canMoveToField(int xPos, int yPos) {
-        if (xPos >= this.world.getWidth() || xPos < 0
-                || yPos >= this.world.getHeight() || yPos < 0) {
-            return false;
-        }
-        return !world.getField(xPos, yPos);
-    }
-
-    private int collisionAroundField(int xPos, int yPos) {
-        int sum = 0;
-        for (MovementDirection move : MovementDirection.values()) {
-            if (!canMoveToField(xPos + move.deltaX, yPos + move.deltaY))
-                sum++;
-        }
-        return sum;
     }
 
     private void reset() {

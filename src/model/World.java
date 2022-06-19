@@ -84,6 +84,7 @@ public class World {
 	 * TODO: aufräumen :D
 	 */
 	public void generateLightingMap() {
+		/* Set empty fields to brightness 1.0f and obstacle fields to -1.0f */
 		for (int i = 0; i < this.width; ++i) {
 			for (int j = 0; j < this.height; ++j) {
 				if (this.obstacleMap[j][i]) {
@@ -94,6 +95,7 @@ public class World {
 			}
 		}
 
+		/* Push all empty field points onto a stack */
 		Stack<Point2d> s = new Stack<Point2d>();
 		for (Point2d p : this.emptyFields) {
 			s.push(p);
@@ -102,6 +104,7 @@ public class World {
 		int[][] directions = new int[][] { {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
 		while (s.size() != 0) {
 			Point2d top = s.pop();
+			/*  */
 			if (this.lightingMap[top.getY()][top.getX()] == -1.0f) {
 				int numLightedNeighbors = 0;
 				float lightingSum = 0.0f;
@@ -136,6 +139,25 @@ public class World {
 		}
 	}
 
+	Point2d getRandomPointOnMap(){
+		return Point2d.RandomPoint2d(this.getWidth(), this.getHeight());
+	}
+
+	Point2d getCornerPointOnMap(){
+		Point2d tmp = getRandomPointOnMap();
+		do {
+			tmp = getRandomPointOnMap();
+		}
+		while (tmp.getX() > (int)(this.getWidth() / 4)  || tmp.getX() < (int)(this.getWidth() / 4 * 3) ||
+		tmp.getY() > (int)(this.getHeight() / 4)  || tmp.getY() < (int)(this.getHeight() / 4 * 3));
+		return tmp;
+	}
+
+	public void generatePaths() {
+		
+
+	}
+
 	/**
 	 * TODO: in eigene Klasse auslagern (mit digRandomPath())
 	 */
@@ -158,6 +180,8 @@ public class World {
 				int newX = currentX + dir[0], newY = currentY + dir[1];
 				if (newX < 0 || newX >= this.getWidth() || newY < 0 || newY >= this.getHeight() || !this.obstacleMap[newY][newX]) {
 					continue;
+				} else if (this.collisionAroundField(newX, newY) < 3){
+					continue;
 				} else {
 					obstacleMap[newY][newX] = false;
 					this.emptyFields.add(new Point2d(newX, newY));
@@ -176,6 +200,7 @@ public class World {
 				} else {
 					currentY += distY > 0 ? 1 : -1;
 				}
+				this.obstacleMap[currentY][currentX] = false;
 			}
 		}
 
@@ -199,6 +224,8 @@ public class World {
 				if (newX < 0 || newX >= this.getWidth() || newY < 0 || newY >= this.getHeight()) {
 					continue;
 				} else if (!this.obstacleMap[newY][newX]) {
+					continue;
+				} else if (this.collisionAroundField(newX, newY) < 3){
 					continue;
 				} else {
 					obstacleMap[newY][newX] = false;
@@ -228,10 +255,16 @@ public class World {
 		}
 	}
 
+	private long lastTime = System.nanoTime();
 	public void timerTick(float time) {
 		// TODO: was mitm timer machen, weils geht
 		this.globalBrightness = 1.0f - ((float)Math.sin((double)time) + 1.0f) / 10.0f;
 		this.views.get(0).update(this);
+
+		long currentTime = System.nanoTime();
+    	float deltaTime = (currentTime - this.lastTime) / 1000000.f;
+
+		this.views.get(0).updateCamera(this, deltaTime);
 	}
 
 	// Getters and Setters
@@ -273,6 +306,23 @@ public class World {
 		
 		updateViews();
 	}
+
+	public boolean canMoveToField(int xPos, int yPos) {
+        if (xPos >= this.getWidth() || xPos < 0
+                || yPos >= this.getHeight() || yPos < 0) {
+            return false;
+        }
+        return !this.getField(xPos, yPos);
+    }
+
+    public int collisionAroundField(int xPos, int yPos) {
+        int sum = 0;
+        for (MovementDirection move : MovementDirection.values()) {
+            if (!this.canMoveToField(xPos + move.deltaX, yPos + move.deltaY))
+                sum++;
+        }
+        return sum;
+    }
 
 	/**
 	 * returns the x-coordinate of the start-field

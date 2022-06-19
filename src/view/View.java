@@ -15,6 +15,8 @@ public interface View {
 	 */
 	void update(World world);
 
+	void updateCamera(World world, float deltaTime);
+
 	boolean getIsEnabled();
 
 	void setIsEnabled(boolean isEnabled);

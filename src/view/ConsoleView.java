@@ -59,4 +59,9 @@ public class ConsoleView implements View {
 	@Override
 	public void setIsEnabled(boolean isEnabled) { this.isEnabled = isEnabled; }
 
+	@Override
+	public void updateCamera(World world, float deltaTime){
+		return;
+	}
+
 }
