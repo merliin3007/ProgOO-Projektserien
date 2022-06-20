@@ -58,6 +58,7 @@ public class World {
      */
     private boolean[][] obstacleMap;
     private float[][] lightingMap;
+    private float[][] playerDistanceLightingMap;
     private float globalBrightness = 1.0f;
     private ArrayList<Point2d> emptyFields;
 
@@ -89,6 +90,7 @@ public class World {
     public void resetWorld() {
         this.obstacleMap = new boolean[height][width];
         this.lightingMap = new float[height][width];
+        this.playerDistanceLightingMap = new float[height][width];
         this.emptyFields = new ArrayList<Point2d>();
 
         this.enemies = new ArrayList<Enemy>();
@@ -96,6 +98,15 @@ public class World {
         Random rnd = new Random();
         this.worldGenerators.get(rnd.nextInt(this.worldGenerators.size())).generateWorld();
         this.generateLightingMap();
+    }
+
+    public void generatePlayerDistanceLightingMap() {
+        for (int i = 0; i < this.width; ++i) {
+            for (int j = 0; j < this.height; ++j) {
+                float levelFactor = (float)(Math.log(this.level > 1 ? this.level / 2.f : 1.f) + 1.f);
+                this.playerDistanceLightingMap[j][i] = 1.f / ((float)getDistance(i, j, this.playerX, this.playerY) * 0.1f * levelFactor);
+            }
+        }
     }
 
     /**
@@ -175,6 +186,7 @@ public class World {
     	float deltaTime = (currentTime - this.lastTime) / 1000000.f;
 		lastTime = currentTime;
 
+        this.generatePlayerDistanceLightingMap();
         this.views.get(0).updateCamera(this, deltaTime);
     }
 
@@ -489,6 +501,10 @@ public class World {
     public void setPlayerLocation(final int xPos, final int yPos) {
         setPlayerX(xPos);
         setPlayerY(yPos);
+    }
+
+    public float[][] getPlayerDistanceLightingMap() {
+        return this.playerDistanceLightingMap;
     }
 
     ///////////////////////////////////////////////////////////////////////////

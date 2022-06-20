@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.AlphaComposite;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,6 +81,8 @@ public class GraphicView extends JPanel implements View {
 	private float zoom = 2.f;
 	private float cameraFollowSpeed = 2.5f;
 
+	private float[][] playerDistanceLightingMap;
+
 	/**
 	 * Creates a new instance.
 	 */
@@ -94,12 +97,33 @@ public class GraphicView extends JPanel implements View {
 		// Paint background
 		g.setColor(this.globalLighting.applyToRgb(200, 200, 200));
 		g.fillRect(bg.x, bg.y, bg.width, bg.height);
+		for (int i = 0; i < this.playerDistanceLightingMap[0].length; ++i) {
+			for (int j = 0; j < this.playerDistanceLightingMap.length; ++j) {
+				Lighting lighting = new Lighting(this.playerDistanceLightingMap[j][i] * this.playerDistanceLightingMap[j][i]);
+				g.setColor(lighting.applyToRgb(200, 200, 200));
+				g.fillRect(
+					(int)(i * this.cameraDimension.getWidth() + this.cameraPosition.getX()), 
+					(int)(j * this.cameraDimension.getHeight() + this.cameraPosition.getY()), 
+					(int)(this.cameraDimension.getWidth()), 
+					(int)(this.cameraDimension.getHeight())
+				);
+			}
+		}
 		// Paint Finish field
 		g.drawImage(this.houseTexture, finishField.x, finishField.y, finishField.width, finishField.height, null);
 		// Paint obstacles
 		for (int i = 0; i < this.obstacles.size(); ++i) {
 			Rectangle obstacle = this.obstacles.get(i);
 			Lighting lighting = this.obstacleBrighness.get(i);
+
+			int y = (int)(obstacle.y / this.cameraDimension.getHeight());
+			int x = (int)(obstacle.x / this.cameraDimension.getWidth());
+			x -= this.cameraPosition.getX() / this.cameraDimension.getWidth();
+			y -= this.cameraPosition.getY() / this.cameraDimension.getHeight();
+			y = y >= this.playerDistanceLightingMap.length ? this.playerDistanceLightingMap.length : y < 0 ? 0 : y;
+			x = x >= this.playerDistanceLightingMap[0].length ? this.playerDistanceLightingMap.length : x < 0 ? 0 : x;
+			lighting.multVal(this.playerDistanceLightingMap[y][x]);
+
 			g.setColor(lighting.applyToRgb(100, 100, 100));
 			g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
 		}
@@ -164,7 +188,7 @@ public class GraphicView extends JPanel implements View {
 			enemyRectangle.setSize(cameraDimension);
 			enemyRectangle.setLocation(
 				(int)((enemy.getPositionX() * cameraDimension.width) + this.cameraPosition.getX()),
-				(int)((enemy.getPositionY() * cameraDimension.height + this.cameraPosition.getY()))
+				(int)((enemy.getPositionY() * cameraDimension.height) + this.cameraPosition.getY())
 			);
 			this.enemies.add(enemyRectangle);
 		}
@@ -184,6 +208,8 @@ public class GraphicView extends JPanel implements View {
 
 	@Override
 	public void updateCamera(World world, float deltaTime) {
+		this.playerDistanceLightingMap = world.getPlayerDistanceLightingMap();
+
 		/* Update zoom. */
 		this.zoom = 1.f + (float)Math.log((double)world.getLevel()) * 0.5f;
 		this.cameraDimension.setSize((double)(this.fieldDimension.getWidth() * this.zoom), (double)(this.fieldDimension.getHeight() * this.zoom));

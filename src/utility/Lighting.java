@@ -13,6 +13,8 @@ public class Lighting {
         return new Color((int)(r * this.val), (int)(g * this.val), (int)(b * this.val));
     }
 
+    public void multVal(float val) { this.val *= val < 0.f ? 0.f : val >= 1.f ? 1.f : val; }
+
     public float getVal() { return this.val; }
 
     public void setVal(float val) { this.val = val; }
