@@ -84,7 +84,7 @@ public class Labyrinth {
                         time += 0.01f; // TODO: measure delta time
                     }
                 };
-                Timer timer = new Timer(3, actionListener);
+                Timer timer = new Timer(16, actionListener);
                 timer.start();
             }
         });

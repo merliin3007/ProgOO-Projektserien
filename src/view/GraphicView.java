@@ -8,6 +8,7 @@ import java.awt.AlphaComposite;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Stack;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -17,6 +18,7 @@ import java.awt.image.BufferedImage;
 
 import utility.Utility;
 import utility.Lighting;
+import utility.Point2d;
 import utility.Point2f;
 import model.World;
 import model.Enemy;
@@ -25,6 +27,9 @@ import model.Enemy;
  * A graphical view of the world.
  */
 public class GraphicView extends JPanel implements View {
+
+	private final boolean ENABLE_SMOOTH_LIGHTING_ANIM = true;
+	private final float SMOOTH_LIGHTING_ANIM_FACTOR = .5f;
 	
 	/** The view's width. */
 	private final int WIDTH;
@@ -81,6 +86,7 @@ public class GraphicView extends JPanel implements View {
 	private float zoom = 2.f;
 	private float cameraFollowSpeed = 2.5f;
 
+	private float[][] lightingMap;
 	private float[][] playerDistanceLightingMap;
 
 	/**
@@ -129,11 +135,13 @@ public class GraphicView extends JPanel implements View {
 		}
 		// Paint player
 		g.drawImage(this.playerTexture, player.x, player.y, player.width, player.height, null);
+		g.fillRect(player.x, player.y, player.width, player.height);
 		// Paint enemies
 		for (Rectangle enemy : this.enemies) {
 			//g.setColor(Color.RED);
 			//g.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
 			g.drawImage(this.creeperTexture, enemy.x, enemy.y, enemy.width, enemy.height, null);
+			g.setColor(new Color(0, 0, 0, 128));
 		}
 		
 		/* Overlay */
@@ -171,7 +179,7 @@ public class GraphicView extends JPanel implements View {
 						(int)((i * cameraDimension.height) + this.cameraPosition.getY())
 					);
 					this.obstacles.add(obstacle);
-					this.obstacleBrighness.add(new Lighting(world.getLightingMap()[i][j] * world.getGlobalBrightness()));
+					this.obstacleBrighness.add(new Lighting(this.lightingMap[i][j] * world.getGlobalBrightness()));
 				}
 			}
 		}
@@ -208,7 +216,8 @@ public class GraphicView extends JPanel implements View {
 
 	@Override
 	public void updateCamera(World world, float deltaTime) {
-		this.playerDistanceLightingMap = world.getPlayerDistanceLightingMap();
+		//this.playerDistanceLightingMap = world.getPlayerDistanceLightingMap();
+		this.generatePlayerDistanceLightingMap(world, deltaTime);
 
 		/* Update zoom. */
 		this.zoom = 1.f + (float)Math.log((double)world.getLevel()) * 0.5f;
@@ -262,6 +271,12 @@ public class GraphicView extends JPanel implements View {
 		this.update(world);
 	}
 
+	@Override
+	public void onLevelChanged(World world) {
+		System.out.println("uffbuff");
+		this.generateLevelLightingMap(world);
+	}
+
 	/**
 	 * Moves the camera.
 	 * 
@@ -272,6 +287,103 @@ public class GraphicView extends JPanel implements View {
 		this.cameraPosition.addX(dirX);
 		this.cameraPosition.addY(dirY);
 	}
+
+	/**
+	 * Generate a lighting-map based on the players distance.
+	 * 
+	 * @param world the world to generate the lighting map for.
+	 */
+	public void generatePlayerDistanceLightingMap(World world, float deltaTime) {
+		/* Lightingmap should not be null */
+		if (this.playerDistanceLightingMap == null) {
+			this.playerDistanceLightingMap = new float[world.getHeight()][world.getWidth()];
+		}
+
+		/* Calculate lighting map */
+        for (int i = 0; i < world.getWidth(); ++i) {
+            for (int j = 0; j < world.getHeight(); ++j) {
+                float levelFactor = (float)(Math.log(world.getLevel() > 1 ? world.getLevel() / 2.f : 1.f) + 1.f);
+				if (!this.ENABLE_SMOOTH_LIGHTING_ANIM) {
+					/* not lighting animation */
+                	this.playerDistanceLightingMap[j][i] = 1.f / ((float)World.getDistance(i, j, world.getPlayerX(), world.getPlayerY()) * 0.1f * levelFactor);
+				} else {
+					/* smooth lighting animation */
+					float lightVal = 1.f / ((float)World.getDistance(i, j, world.getPlayerX(), world.getPlayerY()) * 0.1f * levelFactor);
+					lightVal = lightVal >= 1.f ? 1.f : lightVal;
+					float smooth = this.SMOOTH_LIGHTING_ANIM_FACTOR * deltaTime;
+					this.playerDistanceLightingMap[j][i] = (this.playerDistanceLightingMap[j][i] * smooth + lightVal) / (smooth + 1.f);
+				}
+            }
+        }
+    }
+
+	/**
+     * Generates a lighting map for the level world.
+     */
+    public void generateLevelLightingMap(World world) {
+		/* lighting map should not be null */
+		if (this.lightingMap == null) {
+			this.lightingMap = new float[world.getHeight()][world.getWidth()];
+		}
+
+        /* Set empty fields to brightness 1.0f and obstacle fields to -1.0f */
+        for (int i = 0; i < world.getWidth(); ++i) {
+            for (int j = 0; j < world.getHeight(); ++j) {
+                if (world.getObstacleMap()[j][i]) {
+                    this.lightingMap[j][i] = -1.0f;
+                } else {
+                    this.lightingMap[j][i] = 1.0f;
+                }
+            }
+        }
+
+        /* Push all empty field points onto a stack */
+        Stack<Point2d> s = new Stack<Point2d>();
+        for (Point2d p : world.getEmptyFields()) {
+            s.push(p);
+        }
+
+        int[][] directions = new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1}};
+        while (s.size() != 0) {
+            Point2d top = s.pop();
+            /* Light this field if its not lit. */
+            if (this.lightingMap[top.getY()][top.getX()] == -1.0f) {
+                int numLightedNeighbors = 0;
+                float lightingSum = 0.0f;
+                /* Calculate Lighting for this field. */
+                for (int[] dir : directions) {
+                    int x = top.getX() + dir[0];
+                    int y = top.getY() + dir[1];
+                    if (x < 0 || x >= world.getWidth() || y < 0 || y >= world.getHeight()) {
+                        continue;
+                    }
+                    float fieldVal = this.lightingMap[y][x];
+                    if (fieldVal != -1.0f) {
+                        lightingSum += fieldVal;
+                        numLightedNeighbors++;
+                    } else {
+                        /* Push unlit neighbors to stack. */
+                        s.push(new Point2d(x, y));
+                    }
+                }
+                this.lightingMap[top.getY()][top.getX()] = (lightingSum / (float) numLightedNeighbors) * 0.95f;
+            /* This field is already lit af. */
+            } else {
+                /* Push unlit neighbors to stack. */
+                for (int[] dir : directions) {
+                    int x = top.getX() + dir[0];
+                    int y = top.getY() + dir[1];
+                    if (x < 0 || x >= world.getWidth() || y < 0 || y >= world.getHeight()) {
+                        continue;
+                    }
+                    float fieldVal = this.lightingMap[y][x];
+                    if (fieldVal == -1.0f) {
+                        s.push(new Point2d(x, y));
+                    }
+                }
+            }
+        }
+    }
 
 	@Override
 	public boolean getIsEnabled() { return this.isEnabled; }

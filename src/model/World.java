@@ -57,8 +57,8 @@ public class World {
      * creates a map of obstacles for the labyrinth, where "true" is an obstacle
      */
     private boolean[][] obstacleMap;
-    private float[][] lightingMap;
-    private float[][] playerDistanceLightingMap;
+    ///private float[][] lightingMap;
+    ///private float[][] playerDistanceLightingMap;
     private float globalBrightness = 1.0f;
     private ArrayList<Point2d> emptyFields;
 
@@ -89,88 +89,28 @@ public class World {
      */
     public void resetWorld() {
         this.obstacleMap = new boolean[height][width];
-        this.lightingMap = new float[height][width];
-        this.playerDistanceLightingMap = new float[height][width];
+        ///this.lightingMap = new float[height][width];
+        ///this.playerDistanceLightingMap = new float[height][width];
         this.emptyFields = new ArrayList<Point2d>();
 
         this.enemies = new ArrayList<Enemy>();
 
         Random rnd = new Random();
         this.worldGenerators.get(rnd.nextInt(this.worldGenerators.size())).generateWorld();
-        this.generateLightingMap();
-    }
-
-    public void generatePlayerDistanceLightingMap() {
-        for (int i = 0; i < this.width; ++i) {
-            for (int j = 0; j < this.height; ++j) {
-                float levelFactor = (float)(Math.log(this.level > 1 ? this.level / 2.f : 1.f) + 1.f);
-                this.playerDistanceLightingMap[j][i] = 1.f / ((float)getDistance(i, j, this.playerX, this.playerY) * 0.1f * levelFactor);
-            }
+        ///this.generateLightingMap();
+        for (View view : this.views) {
+            view.onLevelChanged(this);
         }
     }
 
-    /**
-     * Generates the lighting-map.
-     */
-    public void generateLightingMap() {
-        /* Set empty fields to brightness 1.0f and obstacle fields to -1.0f */
-        for (int i = 0; i < this.width; ++i) {
-            for (int j = 0; j < this.height; ++j) {
-                if (this.obstacleMap[j][i]) {
-                    this.lightingMap[j][i] = -1.0f;
-                } else {
-                    this.lightingMap[j][i] = 1.0f;
-                }
-            }
-        }
-
-        /* Push all empty field points onto a stack */
-        Stack<Point2d> s = new Stack<Point2d>();
-        for (Point2d p : this.emptyFields) {
-            s.push(p);
-        }
-
-        int[][] directions = new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1}};
-        while (s.size() != 0) {
-            Point2d top = s.pop();
-            /* Light this field if its not lit. */
-            if (this.lightingMap[top.getY()][top.getX()] == -1.0f) {
-                int numLightedNeighbors = 0;
-                float lightingSum = 0.0f;
-                /* Calculate Lighting for this field. */
-                for (int[] dir : directions) {
-                    int x = top.getX() + dir[0];
-                    int y = top.getY() + dir[1];
-                    if (x < 0 || x >= this.getWidth() || y < 0 || y >= this.getHeight()) {
-                        continue;
-                    }
-                    float fieldVal = this.lightingMap[y][x];
-                    if (fieldVal != -1.0f) {
-                        lightingSum += fieldVal;
-                        numLightedNeighbors++;
-                    } else {
-                        /* Push unlit neighbors to stack. */
-                        s.push(new Point2d(x, y));
-                    }
-                }
-                this.lightingMap[top.getY()][top.getX()] = (lightingSum / (float) numLightedNeighbors) * 0.95f;
-            /* This field is already lit af. */
-            } else {
-                /* Push unlit neighbors to stack. */
-                for (int[] dir : directions) {
-                    int x = top.getX() + dir[0];
-                    int y = top.getY() + dir[1];
-                    if (x < 0 || x >= this.getWidth() || y < 0 || y >= this.getHeight()) {
-                        continue;
-                    }
-                    float fieldVal = this.lightingMap[y][x];
-                    if (fieldVal == -1.0f) {
-                        s.push(new Point2d(x, y));
-                    }
-                }
-            }
-        }
-    }
+    ///public void generatePlayerDistanceLightingMap() {
+    ///    for (int i = 0; i < this.width; ++i) {
+    ///        for (int j = 0; j < this.height; ++j) {
+    ///            float levelFactor = (float)(Math.log(this.level > 1 ? this.level / 2.f : 1.f) + 1.f);
+    ///            this.playerDistanceLightingMap[j][i] = 1.f / ((float)getDistance(i, j, this.playerX, this.playerY) * 0.1f * levelFactor);
+    ///        }
+    ///    }
+    ///}
 
 	private long lastTime = System.nanoTime();
 
@@ -186,7 +126,7 @@ public class World {
     	float deltaTime = (currentTime - this.lastTime) / 1000000.f;
 		lastTime = currentTime;
 
-        this.generatePlayerDistanceLightingMap();
+        ///this.generatePlayerDistanceLightingMap();
         this.views.get(0).updateCamera(this, deltaTime);
     }
 
@@ -409,9 +349,9 @@ public class World {
         return this.obstacleMap;
     }
 
-    public float[][] getLightingMap() {
-        return this.lightingMap;
-    }
+    ///public float[][] getLightingMap() {
+    ///    return this.lightingMap;
+    ///}
     /**
      * Returns the current level of the world.
      * @return The current level of the world.
@@ -503,9 +443,9 @@ public class World {
         setPlayerY(yPos);
     }
 
-    public float[][] getPlayerDistanceLightingMap() {
-        return this.playerDistanceLightingMap;
-    }
+    ///public float[][] getPlayerDistanceLightingMap() {
+    ///    return this.playerDistanceLightingMap;
+    ///}
 
     ///////////////////////////////////////////////////////////////////////////
     // View Management
@@ -518,6 +458,7 @@ public class World {
      */
     public void registerView(View view) {
         views.add(view);
+        view.onLevelChanged(this);
         view.update(this);
     }
 
@@ -548,7 +489,7 @@ public class World {
      * @param y2 The y-coordinate of the second point.
      * @return
      */
-    static double getDistance(final int x1, final int y1, final int x2, final int y2) {
+    public static double getDistance(final int x1, final int y1, final int x2, final int y2) {
         return Math.sqrt(Math.pow(y1 - y2, 2.0) + Math.pow(x1 - x2, 2.0));
     }
 }
