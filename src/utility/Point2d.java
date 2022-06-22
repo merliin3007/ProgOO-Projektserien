@@ -1,6 +1,5 @@
 package utility;
 
-import java.security.cert.PolicyNode;
 import java.util.Random;
 
 /**
@@ -75,6 +74,15 @@ public class Point2d {
     }
 
     /**
+     * Sets a point based upon a given point.
+     * 
+     * @param newPoint The new point to set.
+     */
+    public void setPoint(Point2d newPoint){
+        setX(newPoint.getX());
+        setY(newPoint.getY());
+    }
+    /**
      * Adds an integer to the x-coordinate.
      * 
      * @param x the value to add to the x-coordinate.
@@ -91,6 +99,18 @@ public class Point2d {
     public void addY(int y) {
         this.y += y;
     }
+
+    /**
+     * Adds the given values to the current point.
+     * 
+     * @param x The value to add to the x-coordinate.
+     * @param y The value to add to the y-coordinate.
+     */
+    public void add(int x, int y){
+        addX(x);
+        addY(y);
+    }
+
     /**
      * Gets the x-coordinate of the two-dimensional point. 
      * 

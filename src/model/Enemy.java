@@ -1,27 +1,48 @@
 package model;
 
+import utility.Point2d;
+
 public class Enemy {
-    private int positionX;
-    private int positionY;
-
-    private float health; // TODO: implement health
-
-    private float damage;
+    
+    private Point2d enemyPos;
 
     public Enemy(int x, int y) {
-        this.positionX = x;
-        this.positionY = y;
+        enemyPos = new Point2d(x, y);
     }
 
     /**
-     * Getters / Setters
+     * Gets the current location of the enemy as a point.
+     * 
+     * @return The current point as a direct reference.
      */
+    public Point2d getLocation(){
+        return this.enemyPos;
+    }
+    /**
+     * Gets the x-coordinate of the enemy.
+     * 
+     * @return The x-coordinate of the enemy.
+     */
+    public int getPositionX() { return this.enemyPos.getX(); }
 
-    public int getPositionX() { return this.positionX; }
+    /**
+     * Sets the x-coordinate of the enemy.
+     * 
+     * @param x The x-coordinate to set.
+     */
+    public void setPositionX(int x) { this.enemyPos.setX(x); }
 
-    public void setPositionX(int x) { this.positionX = x; }
-   
-    public int getPositionY() { return this.positionY; }
+   /**
+    * Gets the y-coordinate of the enemy.
+    *
+    * @return The y-coordinate of the enemy.
+    */
+    public int getPositionY() { return this.enemyPos.getY(); }
 
-    public void setPositionY(int y) { this.positionY = y; }
+    /**
+     * Sets the x-coordinate of the enemy.
+     * 
+     * @param y The y-coordinate to set.
+     */
+    public void setPositionY(int y) { this.enemyPos.setY(y); }
 }

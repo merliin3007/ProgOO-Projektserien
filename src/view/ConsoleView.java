@@ -11,6 +11,7 @@ import model.Enemy;
  */
 public class ConsoleView implements View {
 
+	/** Whehter this view is enabled or not */
 	boolean isEnabled = true;
 
 	@Override
@@ -53,17 +54,40 @@ public class ConsoleView implements View {
 		System.out.println();
 	}
 
+	/**
+	 * Gets whether this view is enabled or not.
+	 * 
+	 * @return Whether this view is enabled or not.
+	 */
 	@Override
 	public boolean getIsEnabled() { return this.isEnabled; }
 
+	/**
+	 * Sets whether this view is enabled or not.
+	 * 
+	 * @return Wheter this view is enabled or not.
+	 */
 	@Override
 	public void setIsEnabled(boolean isEnabled) { this.isEnabled = isEnabled; }
 
+	/** 
+	 * Updates the camera.
+	 * As the camera for the ConsoleView doesn' change position, zoom or 
+	 * anything else, this method does nothing.
+	 * 
+	 * @param world The world of which the camera will not have changed.
+	 * @param deltaTime The time since the last call to this method.
+	 */
 	@Override
 	public void updateCamera(World world, float deltaTime) {
 		return;
 	}
 
+	/**
+	 * Gets called whenever the level of the world has changed.
+	 * 
+	 * @param world The world of which the level has changed.
+	 */
 	@Override
 	public void onLevelChanged(World world) {
 
