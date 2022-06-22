@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
+/* Project */
 import view.EnvironmentEvent;
 import view.View;
 import utility.Point2d;

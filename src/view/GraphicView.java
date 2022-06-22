@@ -62,6 +62,7 @@ public class GraphicView extends JPanel implements View {
 	AudioClip explosionSoundClip;
 	AudioClip levelUpClip;
 	AudioClip creeperTriggeredClip;
+	AudioClip deathSoundClip;
 
 	/* Colors */
 	private Color pathColor = new Color(200, 200, 200);
@@ -338,6 +339,9 @@ public class GraphicView extends JPanel implements View {
 			case CREEPER_TRIGGERED:
 				this.creeperTriggeredClip.play();
 				break;
+			case PLAYER_DIED:
+				this.deathSoundClip.play();
+				break;
 		}
 	}
 
@@ -567,6 +571,7 @@ public class GraphicView extends JPanel implements View {
 		this.explosionSoundClip = this.loadAudioClip("explode.wav", 1.f);
 		this.levelUpClip = this.loadAudioClip("level_up.wav", .4f);
 		this.creeperTriggeredClip = this.loadAudioClip("creeper_triggered.wav", 1.f);
+		this.deathSoundClip = this.loadAudioClip("death.wav", 1.f);
 	}
 
 	private AudioClip loadAudioClip(String filename, float volume) {

@@ -22,7 +22,7 @@ public class Console {
         }
         catch (final Exception e)
         {
-            //  Handle any exceptions.
+            // Handle any exceptions.
             // Not now
         }
     }

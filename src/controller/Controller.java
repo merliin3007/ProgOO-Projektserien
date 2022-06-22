@@ -5,6 +5,7 @@ import model.Enemy;
 import model.MovementDirection;
 import model.World;
 import utility.Point2d;
+import view.EnvironmentEvent;
 import view.View;
 
 import javax.swing.*;
@@ -118,6 +119,7 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
         for (Enemy enemy : this.world.getEnemies()) {
             if (enemy.getPositionX() == world.getPlayerX() && enemy.getPositionY() == world.getPlayerY()) {
                 this.world.resetGame();
+                this.world.triggerEnvironmentEvent(EnvironmentEvent.PLAYER_DIED);
             }
         }
 

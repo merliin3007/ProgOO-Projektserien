@@ -2,5 +2,6 @@ package view;
 
 public enum EnvironmentEvent {
     LEVEL_UP,
-    CREEPER_TRIGGERED;
+    CREEPER_TRIGGERED,
+    PLAYER_DIED;
 }

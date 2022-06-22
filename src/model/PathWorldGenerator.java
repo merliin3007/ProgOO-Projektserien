@@ -2,6 +2,7 @@ package model;
 
 import java.util.Random;
 
+/* Project */
 import utility.*;
 
 public class PathWorldGenerator implements WorldGenerator {

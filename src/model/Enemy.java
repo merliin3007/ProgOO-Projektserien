@@ -3,6 +3,7 @@ package model;
 import java.util.Iterator;
 import java.util.Random;
 
+/* Project */
 import utility.Point2d;
 
 public class Enemy {
