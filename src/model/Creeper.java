@@ -6,8 +6,8 @@ import utility.Point2d;
 
 public class Creeper extends Enemy {
 
-    private final int EXPLOSION_TRIGGER_SIZE = 7;
-    private final int EXPLOSION_SIZE = 18;
+    private final int EXPLOSION_TRIGGER_SIZE = 18; // 7
+    private final int EXPLOSION_SIZE = 14;
     private final float EXPLOSION_COUNTDOWN = 8.f;
 
     private boolean triggered = false;
@@ -24,7 +24,7 @@ public class Creeper extends Enemy {
             super.update(world);
         }
 
-        if (World.getDistance(world.getPlayerLocation(), this.getLocation()) < EXPLOSION_TRIGGER_SIZE) {
+        if (World.getDistance(world.getPlayerLocation(), this.getLocation()) < EXPLOSION_TRIGGER_SIZE / 2) {
             this.triggered = true;
             this.countdown = EXPLOSION_COUNTDOWN;
         }
@@ -49,6 +49,7 @@ public class Creeper extends Enemy {
     }
 
     private void explodeAway(World world) {
+        Random rnd = new Random();
         /* Ein heftiges Loch in die Map ballern */
         for (int i = 0; i < EXPLOSION_SIZE; ++i) {
             for (int j = 0; j < EXPLOSION_SIZE; ++j) {
@@ -57,19 +58,22 @@ public class Creeper extends Enemy {
                 double distance = World.getDistance(this.getLocation(), new Point2d(x, y)); 
                 if (distance < EXPLOSION_SIZE / 2) {
                     if (world.isValidField(x, y)) {
-                        world.removeObstacleInField(x, y);
+                        if (rnd.nextInt(100) > 30) {
+                            /* Dont remove all blocks in radius to make the result look more natural. */
+                            world.removeObstacleInField(x, y);
+                        }
                     }
                     if (Point2d.equalPoints(world.getPlayerLocation(), new Point2d(x, y))) {
                         /* Kill Player */
                         world.resetGame();
                     }
                 }
-
             }
         }
 
+        world.spawnExplosion(this.getLocation().copy(), this.EXPLOSION_SIZE);
+
         /* Respawn */
-        Random rnd = new Random();
         Point2d respawnPosition = world.getEmptyFields().get(rnd.nextInt(world.getEmptyFields().size()));
         this.setPositionX(respawnPosition.getX());
         this.setPositionY(respawnPosition.getY());

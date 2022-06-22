@@ -92,6 +92,12 @@ public class World {
         }
     }
 
+    public void spawnExplosion(Point2d position, float size) {
+        for (View view : this.views) {
+            view.spawnExplosion(position, size);
+        }
+    }
+
     ///public void generatePlayerDistanceLightingMap() {
     ///    for (int i = 0; i < this.width; ++i) {
     ///        for (int j = 0; j < this.height; ++j) {

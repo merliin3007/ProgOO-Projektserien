@@ -63,6 +63,9 @@ public class AnimationTexture extends Texture {
 
     public AnimationTexture clone() {
         AnimationTexture cloneAnimationTexture = new AnimationTexture(this.frameTime / 1.f);
+        cloneAnimationTexture.frameTime = this.frameTime;
+        cloneAnimationTexture.isPlaying = true;
+        cloneAnimationTexture.loop = this.loop;
         for (BufferedImage frame : this.frames) {
             cloneAnimationTexture.addFrame(frame);
         }
@@ -71,6 +74,14 @@ public class AnimationTexture extends Texture {
 
     public boolean getIsPlaying() {
         return this.isPlaying;
+    }
+
+    public boolean getLoop() {
+        return this.loop;
+    }
+
+    public void setLoop(boolean value) {
+        this.loop = value;
     }
 
     private BufferedImage getCurrentFrame() {

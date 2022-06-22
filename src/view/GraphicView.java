@@ -44,6 +44,8 @@ public class GraphicView extends JPanel implements View {
 	Texture stoneTexture;
 	Texture cobbleStoneTexture;
 
+	AnimationTexture particleExplosionTexture;
+
 	/* Colors */
 	private Color pathColor = new Color(200, 200, 200);
 	private Color obstacleColor = new Color(100, 100, 100);
@@ -155,6 +157,7 @@ public class GraphicView extends JPanel implements View {
 		/* Game */
 
 		this.globalLighting.setVal(world.getGlobalBrightness());
+		
 		/* Update Finish Field */
 		this.finish.setPosition(world.getFinishCopy());
 		this.finish.setLighting(getLighting(world.getFinishLocation()));
@@ -294,6 +297,11 @@ public class GraphicView extends JPanel implements View {
 	public void onLevelChanged(World world) {
 		/* Generate a shading map for the new level */
 		this.generateLevelLightingMap(world);
+	}
+
+	@Override
+	public void spawnExplosion(Point2d position, float size) {
+		this.particles.add(new ParticleRenderObject(position, new Lighting(size), this.particleExplosionTexture, size));
 	}
 
 	/**
@@ -456,6 +464,10 @@ public class GraphicView extends JPanel implements View {
 		this.creeperTriggeredTexture = this.loadAnimationTexture(new String[] { "creeper.png", "creeper_triggered.png" }, 10.f);
 		this.stoneTexture = this.loadTexture("stone.png");
 		this.cobbleStoneTexture = this.loadTexture("cobblestone.png");
+
+		this.particleExplosionTexture = this.loadAnimationTexture(new String[] { 
+			"explosion_1.png", "explosion_2.png", "explosion_3.png", "explosion_4.png", "explosion_5.png", "explosion_6.png" }, 10.f);
+		this.particleExplosionTexture.setLoop(false);
 	}
 
 	/**

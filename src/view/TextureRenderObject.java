@@ -41,8 +41,19 @@ public class TextureRenderObject extends RenderObject {
             (int)view.getCameraDimension().getWidth(), (int)view.getCameraDimension().getHeight());
         } else {
             /* Draw the actual texture. */
-		    g.drawImage(texture.getImage(), pixelPosition.getX(), pixelPosition.getY(), 
-                (int)(view.getCameraDimension().getWidth() * this.scaleFactor), (int)(view.getCameraDimension().getHeight() * this.scaleFactor), null);
+            if (this.scaleFactor == 1.f) {
+		        g.drawImage(texture.getImage(), 
+                    pixelPosition.getX(), 
+                    pixelPosition.getY(), 
+                    (int)(view.getCameraDimension().getWidth() * this.scaleFactor), 
+                    (int)(view.getCameraDimension().getHeight() * this.scaleFactor), null);
+            } else {
+                g.drawImage(texture.getImage(), 
+                    (int)(pixelPosition.getX() - (view.getCameraDimension().getWidth() * this.scaleFactor) / 2.f), 
+                    (int)(pixelPosition.getY() - (view.getCameraDimension().getHeight() * this.scaleFactor) / 2.f), 
+                    (int)(view.getCameraDimension().getWidth() * this.scaleFactor), 
+                    (int)(view.getCameraDimension().getHeight() * this.scaleFactor), null);
+            }
         }
         /* Draw the shadow above the texture */
 		g.setColor(new Color(0, 0, 0, (int)(255 * (1.f - (this.getLighting().getVal())))));

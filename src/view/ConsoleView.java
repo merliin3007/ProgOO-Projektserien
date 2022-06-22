@@ -2,6 +2,7 @@ package view;
 
 
 import utility.Console;
+import utility.Point2d;
 import model.World;
 import model.Enemy;
 
@@ -90,7 +91,12 @@ public class ConsoleView implements View {
 	 */
 	@Override
 	public void onLevelChanged(World world) {
+		return;
+	}
 
+	@Override
+	public void spawnExplosion(Point2d position, float size) {
+		return;
 	}
 
 }

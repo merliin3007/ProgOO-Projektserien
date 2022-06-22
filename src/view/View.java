@@ -1,6 +1,7 @@
 package view;
 
 import model.World;
+import utility.Point2d;
 
 /**
  * Classes that want to display the {@link World} must implement this interface
@@ -30,6 +31,8 @@ public interface View {
 	 * @param world The world of which the level changed.
 	 */
 	void onLevelChanged(World world);
+
+	void spawnExplosion(Point2d position, float size);
 
 	/**
 	* Gets whether this view is enabled or not.
