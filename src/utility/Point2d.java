@@ -150,6 +150,11 @@ public class Point2d {
         this.y = y;
     }
 
+    /**
+     * Converts the point into a string.
+     * 
+     * @return A readable sting interpretation
+     */
     @Override
     public String toString() {
         return String.format("(%d, %d)", this.x, this.y);

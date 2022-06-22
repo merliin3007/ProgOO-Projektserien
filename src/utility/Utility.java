@@ -3,6 +3,9 @@ package utility;
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ * Class with utility methods.
+ */
 public class Utility {
     public static final boolean DEBUG = true;
     public static final boolean DEBUG_GRAPHICS = false;
@@ -10,15 +13,14 @@ public class Utility {
     /**
      * Randomizes the order of a given array of any type by mutating the array.
      * 
-     * @param <T> The Datatype the array contains
+     * @param <T>   The Datatype the array contains
      * @param array The array to shuffle
      */
     public static <T> void shuffleArray(T[] array) {
         int index;
         T temp;
         Random random = new Random();
-        for (int i = array.length - 1; i > 0; i--)
-        {
+        for (int i = array.length - 1; i > 0; i--) {
             index = random.nextInt(i + 1);
             temp = array[index];
             array[index] = array[i];
@@ -28,16 +30,21 @@ public class Utility {
 
     /**
      * Compares whether two floats differ less than the given precision
-     * @param a The first float to compare
-     * @param b The second float to compare
-     * @param precision The maximum difference between values "a" and "b" to be treated as equal
-     * @return true in case both floats differ less than the given precision, false if not
+     * 
+     * @param a         The first float to compare
+     * @param b         The second float to compare
+     * @param precision The maximum difference between values "a" and "b" to be
+     *                  treated as equal
+     * @return true in case both floats differ less than the given precision, false
+     *         if not
      */
     public static boolean floatcmp(float a, float b, float precision) {
         return Math.abs(a - b) <= precision;
     }
+
     /**
      * Compares whether two floats differ less than 0.0001
+     * 
      * @param a The first float to compare
      * @param b The second float to compare
      * @return true in case both floats differ less than 0.0001, false if not
@@ -45,11 +52,15 @@ public class Utility {
     public static boolean floatcmp(float a, float b) {
         return Utility.floatcmp(a, b, 0.0001f);
     }
+
     /**
-     * Compares whether two ints differ less than the value provided by param "precision"
-     * @param a The first int to compare
-     * @param b The second int to compare
-     * @param precision The maximum difference between values "a" and "b" to be treated as equal
+     * Compares whether two ints differ less than the value provided by param
+     * "precision"
+     * 
+     * @param a         The first int to compare
+     * @param b         The second int to compare
+     * @param precision The maximum difference between values "a" and "b" to be
+     *                  treated as equal
      * @return true in case both int differ less than the precision, false if not
      */
     public static boolean intcmp(int a, int b, int precision) {

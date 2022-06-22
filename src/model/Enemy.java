@@ -1,5 +1,6 @@
 package model;
 
+import java.util.Iterator;
 import java.util.Random;
 
 import utility.Point2d;
@@ -20,19 +21,35 @@ public class Enemy {
         MovementDirection moveDirection = MovementDirection.NONE;
         Random rnd = new Random();
         switch (world.getDifficulty()) {
+            /* Difficulty Easy -> the bot should be stupid */
             case EASY:
                 moveDirection = this.moveDummbot(world);
                 break;
 
+            /* Difficulty Normal -> sometimes the bot should be stupid, sometimes not */
             case NORMAL:
-                moveDirection = rnd.nextBoolean() 
-                    ? this.moveDummbot(world) 
-                    : world.enemyPathingTable.enemyMoveCompute(this.getLocation());
+                moveDirection = rnd.nextBoolean() ? this.moveDummbot(world) : this.moveBigBrainBot(world);
                 break;
-                
+
+            /* Difficulty Hard -> the bot is more intelligent than you */
             case HARD:
-                moveDirection = world.enemyPathingTable.enemyMoveCompute(this.getLocation());
+                moveDirection = this.moveBigBrainBot(world);
                 break;
+        }
+        // Check for possible collision with already moved enemies.
+        // Iterate over already modified enemies
+        Iterator<String> it = world.getEnemyPositions().iterator();
+        // The point the enemy would move to, in case of no collision.
+        String newPoint = new Point2d(this.getPositionX() + moveDirection.deltaX, this.getPositionY() + moveDirection.deltaY).toString();
+        while (it.hasNext()) {
+            // get next enemy to check.
+            String handledPoint = it.next();
+            // check for equality with simple string comparison.
+            if (handledPoint.equals(newPoint)){
+                // In case of collision, do not move.
+                moveDirection = MovementDirection.NONE;
+                break;
+            }
         }
         this.getLocation().add(moveDirection.deltaX, moveDirection.deltaY);
     }
@@ -45,41 +62,53 @@ public class Enemy {
         return this.isDrowned ? EnemyRenderState.DROWNED : EnemyRenderState.ZOMBIE;
     }
 
+    private MovementDirection moveBigBrainBot(World world) {
+        return world.enemyPathingTable.enemyMoveCompute(this.getLocation());
+    }
+
+    /**
+     * It just moves.
+     * 
+     * @param world The world to move on.
+     * @return A movement-direction for the enemy to go to.
+     */
     private MovementDirection moveDummbot(World world) {
         int distanceX = world.getPlayerX() - this.getPositionX();
-        int distanceY = this.getPositionY() - world.getPlayerY();
-
-        boolean moveTowardsPlayer = true;
-        ///int[] newPosValues = new int[2];
-        MovementDirection moveDirection = MovementDirection.NONE;
+        int distanceY = world.getPlayerY() - this.getPositionY();
         boolean handleXFirst = Math.abs(distanceX) >= Math.abs(distanceY);
-        for (int i = 0; i < 4; i++) {
+        boolean distanceYnegative = distanceY < 0, distanceXnegative = distanceX < 0;
+        MovementDirection[] priorityMoves = new MovementDirection[4];
+        for (int i = 0; i < priorityMoves.length; i++) {
             if (handleXFirst) {
-                if (distanceX == 0) // already in same row, moving here is useless
-                    continue;
-                // handle x-value
-                moveDirection = distanceX > 0 == moveTowardsPlayer ? MovementDirection.RIGHT : MovementDirection.LEFT;
-                ///newPosValues[0] = this.getPositionX() + (distanceX > 0 == moveTowardsPlayer ? 1 : -1);
-                ///newPosValues[1] = this.getPositionY();
+                if (distanceXnegative) {
+                    priorityMoves[i] = MovementDirection.LEFT;
+                } else {
+                    priorityMoves[i] = MovementDirection.RIGHT;
+                }
+                distanceXnegative = !distanceXnegative;
             } else {
-                if (distanceY == 0) // already in same row, moving here is useless
-                    continue;
-                // handle y-value
-                moveDirection = distanceY > 0 == moveTowardsPlayer ? MovementDirection.UP : MovementDirection.DOWN;
-                ///newPosValues[0] = this.getPositionX();
-                ///newPosValues[1] = this.getPositionY() + (distanceY > 0 == moveTowardsPlayer ? -1 : 1);
+                if (distanceYnegative) {
+                    priorityMoves[i] = MovementDirection.UP;
+                } else {
+                    priorityMoves[i] = MovementDirection.DOWN;
+                }
+                distanceYnegative = !distanceYnegative;
             }
-            int newPositionX = this.getPositionX() +  moveDirection.deltaX, newPositionY = this.getPositionY() + moveDirection.deltaY;
-            if (world.canMoveToField(newPositionX, newPositionY) && 3 > world.collisionAroundField(newPositionX, newPositionY)) {
-                // successful move
-                break; 
+            handleXFirst = !handleXFirst;
+        }
+        MovementDirection finalDirection = MovementDirection.NONE;
+        for (MovementDirection checkDirection : priorityMoves) {
+            int newPositionX = this.getPositionX() + checkDirection.deltaX;
+            int newPositionY = this.getPositionY() + checkDirection.deltaY;
+            if (world.canMoveToField(newPositionX, newPositionY)) {
+                finalDirection = checkDirection;
+                if (3 > world.collisionAroundField(newPositionX, newPositionY)) {
+                    break;
+                }
             }
-            handleXFirst = !handleXFirst; // toggle if move unsuccessful
-            if (i == 1)  // tried moving in player direction, now try opposite
-                moveTowardsPlayer = false;
         }
 
-        return moveDirection;
+        return finalDirection;
     }
 
     /**

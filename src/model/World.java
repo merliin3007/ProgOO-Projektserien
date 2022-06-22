@@ -1,8 +1,8 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
-import java.util.Stack;
 
 import view.View;
 import utility.Point2d;
@@ -27,8 +27,9 @@ public class World {
      */
     private final int height;
 
-    private int level = 1;
-    private Difficulty difficulty = Difficulty.EASY;
+    private int level = 0;
+    private Difficulty difficulty = Difficulty.HARD;
+    private final float CREEPER_ZOMBIE_SPAWN_RATIO = 0.2f;
 
 	private ArrayList<Enemy> enemies;
     public EnemyPathTable enemyPathingTable;
@@ -36,6 +37,8 @@ public class World {
     /* The  position of the start field. */
     private Point2d playerPosition, startPosition, finishPosition;
 
+    /* Used to save all enemy positons */
+    private HashSet<String> enemyPositions;
     /**
      * Set of views registered to be notified of world updates.
      */
@@ -66,7 +69,8 @@ public class World {
         this.worldGenerators = new ArrayList<WorldGenerator>();
         this.worldGenerators.add(new PathWorldGenerator(this));
         this.worldGenerators.add(new CaveWorldGenerator(this));
-        this.resetWorld();
+        ///this.resetWorld();
+        this.reset();
     }
 
     /**
@@ -80,6 +84,7 @@ public class World {
 
         Random rnd = new Random();
         this.worldGenerators.get(rnd.nextInt(this.worldGenerators.size())).generateWorld();
+        this.enemyPathingTable = new EnemyPathTable(this);
         this.levelChanged();
     }
 
@@ -100,9 +105,9 @@ public class World {
         this.incLevel();
         this.resetWorld();
         this.setPlayerLocation(this.getStartX(), this.getStartY());
-        for (int i = 0; i <= 1 + (int)(this.getLevel() / 10); ++i) {
+        for (int i = 0; i <= /*1 + (int)(this.getLevel() / 10)*/8; ++i) {
             Point2d spawnLocation = getEmptyFields().get(rnd.nextInt(getEmptyFields().size()));
-            Enemy newEnemy = rnd.nextBoolean() 
+            Enemy newEnemy = rnd.nextFloat() < CREEPER_ZOMBIE_SPAWN_RATIO 
                 ? new Creeper(spawnLocation.getX(), spawnLocation.getY()) 
                 : new Enemy(spawnLocation.getX(), spawnLocation.getY());
             this.getEnemies().add(newEnemy);
@@ -120,8 +125,6 @@ public class World {
      * Called every 16ms.
      */
 	public void timerTick(float time) {
-		// TODO: was mitm timer machen, weils geht
-
 		long currentTime = System.nanoTime();
     	float deltaTime = (currentTime - this.lastTime) / 1000000.f;
 		lastTime = currentTime;
@@ -134,6 +137,33 @@ public class World {
         this.views.get(0).updateCamera(this, deltaTime);
     }
 
+    public void updateEnemies() {
+        /* HashSet that contains all enemy positions, used for enemy-enemy-collision. 
+         * TODO: use Point2d instead of String, implement hash-method */
+        enemyPositions  = new HashSet<String>();
+        
+        /* update enemies */
+        for (Enemy enemy : this.getEnemies()) {
+            // update enemy
+            enemy.update(this);
+            // add position to weed set
+            enemyPositions.add(enemy.getLocation().toString());
+        }
+
+        /* Don't update pathing table in easy difficulty because it's not used. */
+        if (difficulty != Difficulty.EASY) {
+            this.enemyPathingTable.computeMap(this.getPlayerLocation());
+        }
+    }
+
+    /**
+     * Returns a HashSet with the handled enemy positions.
+     * 
+     * @return A reference to the hash-set
+     */
+    public HashSet<String> getEnemyPositions(){
+        return this.enemyPositions;
+    }
     /**
      * Returns the width of the labyrinth-world.
      * 
@@ -550,7 +580,7 @@ public class World {
     static double getDistance(Point2d p1, Point2d p2) {
         return getDistance(p1.getX(), p1.getY(), p2.getX(), p2.getY());
     }
-    
+
     /**
      * Calculates the (diagonal) distance inbetween two two-dimensional points, given by their coordinates.
      * 
