@@ -1,5 +1,6 @@
 package view;
 
+/* View */
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -12,6 +13,13 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import java.awt.image.BufferedImage;
 
+/* Sound */
+import java.io.File;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+
+/* Project */
 import utility.Utility;
 import utility.Point2d;
 import utility.Point2f;
@@ -34,6 +42,7 @@ public class GraphicView extends JPanel implements View {
 	private Dimension fieldDimension, cameraDimension;
 
 	private final File TEXTURE_PATH = new File("resources");
+	private final File AUDIO_PATH = new File(new File("resources"), "audio");
 
 	/* Textures */
 	Texture playerTexture;
@@ -46,6 +55,10 @@ public class GraphicView extends JPanel implements View {
 	Texture cobbleStoneTexture;
 
 	AnimationTexture particleExplosionTexture;
+
+	/* Audio Clips */
+	Clip soundtrackClip;
+	Clip explosionSoundClip;
 
 	/* Colors */
 	private Color pathColor = new Color(200, 200, 200);
@@ -69,6 +82,10 @@ public class GraphicView extends JPanel implements View {
 
 		/* Load all textures. */
 		this.loadTextures();
+
+		/* Load all audio clips */
+		this.loadAudioClips();
+		this.playAudioClip(this.soundtrackClip);
 
 		/* Init RenderObjects */
 		this.player = new TextureRenderObject(new Point2d(0, 0), new Lighting(1.f), this.playerTexture);
@@ -306,6 +323,7 @@ public class GraphicView extends JPanel implements View {
 	@Override
 	public void spawnExplosion(Point2d position, float size) {
 		this.particles.add(new ParticleRenderObject(position, new Lighting(size), this.particleExplosionTexture, size));
+		this.playAudioClip(this.explosionSoundClip);
 	}
 
 	/**
@@ -526,6 +544,31 @@ public class GraphicView extends JPanel implements View {
 		} catch (IOException e) {
 			System.out.println(String.format("Loading Texture '%s' failed.", filename));
 			return null;
+		}
+	}
+
+	private void loadAudioClips() {
+		this.soundtrackClip = this.loadAudioClip("sweden.wav");
+		this.explosionSoundClip = this.loadAudioClip("explode.wav");
+	}
+
+	private Clip loadAudioClip(String filename) {
+		try {
+			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(AUDIO_PATH, filename).getAbsoluteFile());
+			Clip clip = AudioSystem.getClip();
+			clip.open(audioInputStream);
+			///clip.start();
+			return clip;
+		} catch(Exception e) {
+			System.out.println(String.format("Couldn't load audio '%s'.", filename));
+			return null;
+		}
+	}
+
+	private void playAudioClip(Clip clip) {
+		if (clip != null) {
+			clip.stop();
+			clip.start();
 		}
 	}
 
