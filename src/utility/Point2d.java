@@ -45,10 +45,11 @@ public class Point2d {
     }
 
     /**
-     * Checks whether the given point is with in a square of a given size around another point.
+     * Checks whether the given point is with in a square of a given size around
+     * another point.
      * 
      * @param otherPoint the other point.
-     * @param range the size of the square.
+     * @param range      the size of the square.
      * 
      * @return whether this point is in the range of the other point or not.
      */
@@ -65,11 +66,12 @@ public class Point2d {
 
     /**
      * Checks whether two points are equal
-     * @param point1    The first point to check
-     * @param point2    The second point to check
-     * @return  True in case both points are equal, false otherwies
+     * 
+     * @param point1 The first point to check
+     * @param point2 The second point to check
+     * @return True in case both points are equal, false otherwies
      */
-    public static boolean equalPoints(Point2d point1, Point2d point2){
+    public static boolean equalPoints(Point2d point1, Point2d point2) {
         return point1.getX() == point2.getX() && point1.getY() == point2.getY();
     }
 
@@ -78,10 +80,11 @@ public class Point2d {
      * 
      * @param newPoint The new point to set.
      */
-    public void setPoint(Point2d newPoint){
+    public void setPoint(Point2d newPoint) {
         setX(newPoint.getX());
         setY(newPoint.getY());
     }
+
     /**
      * Adds an integer to the x-coordinate.
      * 
@@ -106,19 +109,20 @@ public class Point2d {
      * @param x The value to add to the x-coordinate.
      * @param y The value to add to the y-coordinate.
      */
-    public void add(int x, int y){
+    public void add(int x, int y) {
         addX(x);
         addY(y);
     }
 
     /**
-     * Gets the x-coordinate of the two-dimensional point. 
+     * Gets the x-coordinate of the two-dimensional point.
      * 
      * @return The x-coordinate-value
      */
     public int getX() {
         return this.x;
     }
+
     /**
      * Sets the x-value of the two-dimensional point.
      * 
@@ -127,8 +131,9 @@ public class Point2d {
     public void setX(int x) {
         this.x = x;
     }
+
     /**
-     * Gets the y-coordinate of the two-dimensional point. 
+     * Gets the y-coordinate of the two-dimensional point.
      * 
      * @return The y-coordinate-value
      */
@@ -144,7 +149,7 @@ public class Point2d {
     public void setY(int y) {
         this.y = y;
     }
-    
+
     @Override
     public String toString() {
         return String.format("(%d, %d)", this.x, this.y);

@@ -28,6 +28,7 @@ public class World {
     private final int height;
 
     private int level = 1;
+    private Difficulty difficulty = Difficulty.EASY;
 
 	private ArrayList<Enemy> enemies;
     public EnemyPathTable enemyPathingTable;
@@ -38,18 +39,15 @@ public class World {
     /**
      * Set of views registered to be notified of world updates.
      */
-    private final ArrayList<View> views = new ArrayList<>();
+    private final ArrayList<View> views = new ArrayList<View>();
 
     /**
      * creates a map of obstacles for the labyrinth, where "true" is an obstacle
      */
     private boolean[][] obstacleMap;
-    ///private float[][] lightingMap;
-    ///private float[][] playerDistanceLightingMap;
     private float globalBrightness = 1.0f;
     private ArrayList<Point2d> emptyFields;
 
-    private WorldGenerator worldGenerator;
     private ArrayList<WorldGenerator> worldGenerators;
 
     /**
@@ -68,7 +66,6 @@ public class World {
         this.worldGenerators = new ArrayList<WorldGenerator>();
         this.worldGenerators.add(new PathWorldGenerator(this));
         this.worldGenerators.add(new CaveWorldGenerator(this));
-        //this.worldGenerator = new PathWorldGenerator(this);
         this.resetWorld();
     }
 
@@ -77,16 +74,12 @@ public class World {
      */
     public void resetWorld() {
         this.obstacleMap = new boolean[height][width];
-        ///this.lightingMap = new float[height][width];
-        ///this.playerDistanceLightingMap = new float[height][width];
         this.emptyFields = new ArrayList<Point2d>();
 
         this.enemies = new ArrayList<Enemy>();
 
         Random rnd = new Random();
         this.worldGenerators.get(rnd.nextInt(this.worldGenerators.size())).generateWorld();
-        this.enemyPathingTable = new EnemyPathTable(this);
-        ///this.generateLightingMap();
         this.levelChanged();
     }
 
@@ -101,15 +94,6 @@ public class World {
             view.spawnExplosion(position, size);
         }
     }
-
-    ///public void generatePlayerDistanceLightingMap() {
-    ///    for (int i = 0; i < this.width; ++i) {
-    ///        for (int j = 0; j < this.height; ++j) {
-    ///            float levelFactor = (float)(Math.log(this.level > 1 ? this.level / 2.f : 1.f) + 1.f);
-    ///            this.playerDistanceLightingMap[j][i] = 1.f / ((float)getDistance(i, j, this.playerX, this.playerY) * 0.1f * levelFactor);
-    ///        }
-    ///    }
-    ///}
 
     public void reset() {
         Random rnd = new Random();
@@ -139,8 +123,6 @@ public class World {
 		// TODO: was mitm timer machen, weils geht
 
 		long currentTime = System.nanoTime();
-		//this.globalBrightness = 1.0f - ((float)Math.sin((double)time) + 1.0f) / 10.0f;
-		//this.views.get(0).update(this);
     	float deltaTime = (currentTime - this.lastTime) / 1000000.f;
 		lastTime = currentTime;
 
@@ -149,13 +131,9 @@ public class World {
             enemy.updateFrame(this, deltaTime);
         }
 
-        ///this.generatePlayerDistanceLightingMap();
         this.views.get(0).updateCamera(this, deltaTime);
     }
 
-    /**
-     * TODO: aufräumen :D
-     */
     /**
      * Returns the width of the labyrinth-world.
      * 
@@ -173,6 +151,7 @@ public class World {
     public int getHeight() {
         return height;
     }
+
     /**
      * Updates the point based upon a given point.
      * 
@@ -229,11 +208,11 @@ public class World {
         return playerPosition.getY();
     }
 
-   /**
-    * Sets the y-coordinate of the player
-
-    * @param playerY The y-coordinate to set.
-    */
+    /**
+     * Sets the y-coordinate of the player
+     * 
+     * @param playerY The y-coordinate to set.
+     */
     public void setPlayerY(int playerY) {
         this.playerPosition.setY(playerY);
 
@@ -432,9 +411,6 @@ public class World {
         return this.obstacleMap;
     }
 
-    ///public float[][] getLightingMap() {
-    ///    return this.lightingMap;
-    ///}
     /**
      * Returns the current level of the world.
      * @return The current level of the world.
@@ -442,6 +418,7 @@ public class World {
     public int getLevel() {
         return this.level;
     }
+
     /**
      * Sets the level of the world, as long as the provided level is bigger than 0
      * @param level The level to set.
@@ -449,6 +426,7 @@ public class World {
     public void setLevel(int level) {
         this.level = level < 0 ? 0 : level;
     }
+
     /**
      * Increases the level of the world by 1.
      */
@@ -529,9 +507,13 @@ public class World {
         return this.enemyPathingTable;
     }
 
-    ///public float[][] getPlayerDistanceLightingMap() {
-    ///    return this.playerDistanceLightingMap;
-    ///}
+    public Difficulty getDifficulty() {
+        return this.difficulty;
+    }
+
+    public void setDifficulty(Difficulty difficulty) {
+        this.difficulty = difficulty;
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     // View Management
@@ -557,6 +539,7 @@ public class World {
             views.get(i).update(this);
         }
     }
+
     /**
      * Calculates the (diagonal) distance inbetween two two-dimensional points.
      * 
@@ -567,6 +550,7 @@ public class World {
     static double getDistance(Point2d p1, Point2d p2) {
         return getDistance(p1.getX(), p1.getY(), p2.getX(), p2.getY());
     }
+    
     /**
      * Calculates the (diagonal) distance inbetween two two-dimensional points, given by their coordinates.
      * 
