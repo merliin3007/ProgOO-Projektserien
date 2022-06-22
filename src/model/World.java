@@ -101,6 +101,22 @@ public class World {
     ///    }
     ///}
 
+    private void reset() {
+        Random rnd = new Random();
+        this.incLevel();
+        this.resetWorld();
+        this.setPlayerLocation(this.getStartX(), this.getStartY());
+        for (int i = 0; i <= 1 + (int)(this.getLevel() / 10); ++i) {
+            Point2d spawnLocation = getEmptyFields().get(rnd.nextInt(getEmptyFields().size()));
+            this.getEnemies().add(new Creeper(spawnLocation.getX(), spawnLocation.getY()));
+        }
+    }
+
+    public void resetGame() {
+        this.setLevel(0);
+        this.reset();
+    }
+
 	private long lastTime = System.nanoTime();
 
     /**
@@ -114,6 +130,11 @@ public class World {
 		//this.views.get(0).update(this);
     	float deltaTime = (currentTime - this.lastTime) / 1000000.f;
 		lastTime = currentTime;
+
+        /* Update enemies */
+        for (Enemy enemy : this.enemies) {
+            enemy.updateFrame(this, deltaTime);
+        }
 
         ///this.generatePlayerDistanceLightingMap();
         this.views.get(0).updateCamera(this, deltaTime);
