@@ -4,20 +4,15 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.awt.AlphaComposite;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Stack;
-
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
-import javax.swing.plaf.DimensionUIResource;
-
 import java.awt.image.BufferedImage;
 
 import utility.Utility;
-import utility.Lighting;
 import utility.Point2d;
 import utility.Point2f;
 import model.World;
@@ -38,10 +33,22 @@ public class GraphicView extends JPanel implements View {
 	/** The scaling factor. */
 	private Dimension fieldDimension, cameraDimension;
 
+	private final File TEXTURE_PATH = new File("resources");
+
+	/* Textures */
 	BufferedImage playerTexture;
 	BufferedImage houseTexture;
 	BufferedImage creeperTexture;
+	BufferedImage stoneTexture;
+	BufferedImage cobbleStoneTexture;
+
+	/* Colors */
+	private Color pathColor = new Color(200, 200, 200);
+	private Color obstacleColor = new Color(100, 100, 100);
 	
+	/**
+	 * Creates a new instance.
+	 */
 	public GraphicView(int width, int height, Dimension fieldDimension) {
 		this.WIDTH = width;
 		this.HEIGHT = height;
@@ -50,48 +57,51 @@ public class GraphicView extends JPanel implements View {
 			(int)(fieldDimension.getWidth() * this.zoom), 
 			(int)(fieldDimension.getHeight() * this.zoom)
 		);
-		this.bg = new Rectangle(WIDTH, HEIGHT);
 
-		try {
-			File path = new File("resources");
-			this.playerTexture = ImageIO.read(new File(path, "steve.png"));
-			this.houseTexture = ImageIO.read(new File(path, "house.png"));
-			this.creeperTexture = ImageIO.read(new File(path, "creeper.png"));
-		} catch (IOException e) {
-			System.out.println("Loading a Texture failed.");
+		if (Utility.DEBUG) {
+			System.out.println(String.format("Created Window of Size %d * %d", this.WIDTH, this.HEIGHT));
 		}
+
+		/* Load all textures. */
+		this.loadTextures();
+
+		/* Init RenderObjects */
+		this.player = new TextureRenderObject(new Point2d(0, 0), new Lighting(1.f), this.playerTexture);
+		this.finish = new TextureRenderObject(new Point2d(0, 0), new Lighting(1.f), this.houseTexture);
 	}
 	
-	/** The background rectangle. */
-	private final Rectangle bg;
-	/** The rectangle we're moving. */
-	private final Rectangle player = new Rectangle(1, 1);
-	/** A list of all obstacles in the world */
-	private final ArrayList<Rectangle> obstacles = new ArrayList<Rectangle>();
-	private final ArrayList<Lighting> obstacleBrighness = new ArrayList<Lighting>();  
-	/** A list of all enemies in the world */
-	private final ArrayList<Rectangle> enemies = new ArrayList<Rectangle>();
-	/** The finish field */
-	private final Rectangle finishField = new Rectangle(1, 1);
 	/** The level text */
 	private final Rectangle levelCounter = new Rectangle(1, 1);
 	/** The text the level counter ist displaying */
 	private String levelCounterContent = "";
 	/** The global brighness. */
 	private final Lighting globalLighting = new Lighting(1.0f);
-
+	/** Sets whether this view is enabled or not. */
 	private boolean isEnabled = true;
 
-	private Point2f cameraPosition = new Point2f(10.f, 5.f);
-	private float zoom = 2.f;
-	private float cameraFollowSpeed = 2.5f;
+	/** The Player RenderObject */
+	private RenderObject player;
+	/** The Finish-Field RenderObject */
+	private RenderObject finish;
+	/** A list of all PathField RenderObjects */
+	private ArrayList<RenderObject> pathFields = new ArrayList<RenderObject>();
+	/** A list of all obstacles RenderObjects */
+	private ArrayList<RenderObject> obstacles = new ArrayList<RenderObject>();
+	/** A list of all enemy RenderObjects */
+	private ArrayList<RenderObject> enemies = new ArrayList<RenderObject>();
 
-	private float[][] lightingMap;
+	/** The position of the camera */
+	private Point2f cameraPosition = new Point2f(10.f, 5.f);
+	/** The zoom of the camera (higher -> zoom further in) */
+	private float zoom = 2.f;
+	/** The speed the camera is following the player at */
+	private float cameraFollowSpeed = 1.5f; // 2.5f
+
+	/** The shading map for the level, only changes, if a new level is generated (static lighting) */
+	private float[][] levelLightingMap;
+	/** The shading map for the player, changes every frame (dynamic lighting) */
 	private float[][] playerDistanceLightingMap;
 
-	/**
-	 * Creates a new instance.
-	 */
 	@Override
 	public void paint(Graphics g) {
 		if (!isEnabled) {
@@ -100,53 +110,30 @@ public class GraphicView extends JPanel implements View {
 
 		/* Game */
 
-		// Paint background
-		g.setColor(this.globalLighting.applyToRgb(200, 200, 200));
-		g.fillRect(bg.x, bg.y, bg.width, bg.height);
-		for (int i = 0; i < this.playerDistanceLightingMap[0].length; ++i) {
-			for (int j = 0; j < this.playerDistanceLightingMap.length; ++j) {
-				Lighting lighting = new Lighting(this.playerDistanceLightingMap[j][i] * this.playerDistanceLightingMap[j][i]);
-				g.setColor(lighting.applyToRgb(200, 200, 200));
-				g.fillRect(
-					(int)(i * this.cameraDimension.getWidth() + this.cameraPosition.getX()), 
-					(int)(j * this.cameraDimension.getHeight() + this.cameraPosition.getY()), 
-					(int)(this.cameraDimension.getWidth()), 
-					(int)(this.cameraDimension.getHeight())
-				);
-			}
+		/* Paint path */
+		for (RenderObject pathField : this.pathFields) {
+			pathField.draw(g, this);
 		}
-		// Paint Finish field
-		g.drawImage(this.houseTexture, finishField.x, finishField.y, finishField.width, finishField.height, null);
-		// Paint obstacles
-		for (int i = 0; i < this.obstacles.size(); ++i) {
-			Rectangle obstacle = this.obstacles.get(i);
-			Lighting lighting = this.obstacleBrighness.get(i);
 
-			int y = (int)(obstacle.y / this.cameraDimension.getHeight());
-			int x = (int)(obstacle.x / this.cameraDimension.getWidth());
-			x -= this.cameraPosition.getX() / this.cameraDimension.getWidth();
-			y -= this.cameraPosition.getY() / this.cameraDimension.getHeight();
-			y = y >= this.playerDistanceLightingMap.length ? this.playerDistanceLightingMap.length : y < 0 ? 0 : y;
-			x = x >= this.playerDistanceLightingMap[0].length ? this.playerDistanceLightingMap.length : x < 0 ? 0 : x;
-			lighting.multVal(this.playerDistanceLightingMap[y][x]);
+		/* Paint Finish field */
+		this.finish.draw(g, this);
 
-			g.setColor(lighting.applyToRgb(100, 100, 100));
-			g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+		/* Paint obstacles */
+		for (RenderObject obstacle : this.obstacles) {
+			obstacle.draw(g, this);
 		}
-		// Paint player
-		g.drawImage(this.playerTexture, player.x, player.y, player.width, player.height, null);
-		g.fillRect(player.x, player.y, player.width, player.height);
-		// Paint enemies
-		for (Rectangle enemy : this.enemies) {
-			//g.setColor(Color.RED);
-			//g.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-			g.drawImage(this.creeperTexture, enemy.x, enemy.y, enemy.width, enemy.height, null);
-			g.setColor(new Color(0, 0, 0, 128));
+
+		/* Paint player */
+		this.player.draw(g, this);
+
+		/* Paint enemies */
+		for (RenderObject enemy : this.enemies) {
+			enemy.draw(g, this);
 		}
-		
+
 		/* Overlay */
 
-		// Draw Level Counter
+		/* Draw Level Counter */
 		g.setColor(Color.WHITE);
 		g.drawString(String.format(this.levelCounterContent), levelCounter.x, levelCounter.y);
 	}
@@ -160,50 +147,43 @@ public class GraphicView extends JPanel implements View {
 		/* Game */
 
 		this.globalLighting.setVal(world.getGlobalBrightness());
-		// Update Finish Field
-		finishField.setSize(cameraDimension);
-		finishField.setLocation(
-			(int)((world.getFinishX() * cameraDimension.width) + this.cameraPosition.getX()),
-			(int)((world.getFinishY() * cameraDimension.height) + this.cameraPosition.getY())
-		);
-		// Update obstacles
+		/* Update Finish Field */
+		this.finish.setPosition(world.getFinishCopy());
+		this.finish.setLighting(getLighting(world.getFinishLocation()));
+
+		/* Update obstacles */
 		this.obstacles.clear();
-		this.obstacleBrighness.clear();
+		this.pathFields.clear();
 		for (int i = 0; i < world.getObstacleMap().length; ++i) {
 			for (int j = 0; j < world.getObstacleMap()[i].length; ++j) {
 				if (world.getObstacleMap()[i][j]) {
-					Rectangle obstacle = new Rectangle(1, 1);
-					obstacle.setSize(this.cameraDimension);
-					obstacle.setLocation(
-						(int)((j * cameraDimension.width) + this.cameraPosition.getX()),
-						(int)((i * cameraDimension.height) + this.cameraPosition.getY())
-					);
-					this.obstacles.add(obstacle);
-					this.obstacleBrighness.add(new Lighting(this.lightingMap[i][j] * world.getGlobalBrightness()));
+					/* field is obstacle */
+					Lighting lighting = new Lighting(this.levelLightingMap[i][j]);
+					lighting.multVal(this.playerDistanceLightingMap[i][j]);
+					this.obstacles.add(new ColorRenderObject(new Point2d(j, i), lighting, this.obstacleColor));
+				} else {
+					/* field is path */
+					Lighting lighting = getLighting(j, i);
+					lighting.multVal(lighting.getVal());
+					this.pathFields.add(new ColorRenderObject(new Point2d(j, i), lighting, this.pathColor));
 				}
 			}
 		}
-		// Update players size and location
-		player.setSize(cameraDimension);
-		player.setLocation(
-			(int)((world.getPlayerX() * cameraDimension.width) + this.cameraPosition.getX()),
-			(int)((world.getPlayerY() * cameraDimension.height) + this.cameraPosition.getY())
-		);
-		// Update enemies
+
+		/* Update player */
+		this.player.setPosition(new Point2d(world.getPlayerX(), world.getPlayerY()));
+		this.player.setLighting(getLighting(world.getPlayerLocation()));
+
+		/* Update enemies */
 		this.enemies.clear();
 		for (Enemy enemy : world.getEnemies()) {
-			Rectangle enemyRectangle = new Rectangle(1, 1);
-			enemyRectangle.setSize(cameraDimension);
-			enemyRectangle.setLocation(
-				(int)((enemy.getPositionX() * cameraDimension.width) + this.cameraPosition.getX()),
-				(int)((enemy.getPositionY() * cameraDimension.height) + this.cameraPosition.getY())
-			);
-			this.enemies.add(enemyRectangle);
+			Point2d position = new Point2d(enemy.getPositionX(), enemy.getPositionY());
+			this.enemies.add(new TextureRenderObject(position, this.getLighting(position), this.creeperTexture));
 		}
 
 		/* Overlay */
 
-		// Level Counter
+		/* Level Counter */
 		this.levelCounter.setLocation(
 			(int)(1 * this.fieldDimension.width),
 			(int)(world.getHeight() * this.fieldDimension.height - this.fieldDimension.height)
@@ -214,9 +194,16 @@ public class GraphicView extends JPanel implements View {
 		repaint();
 	}
 
+	/**
+	 * Updates the camera.
+	 * Gets called every frame.
+	 * 
+	 * @param world the world that is rendered.
+	 * @param deltaTime the time that passed by since the last call.
+	 */
 	@Override
 	public void updateCamera(World world, float deltaTime) {
-		//this.playerDistanceLightingMap = world.getPlayerDistanceLightingMap();
+		/* Refresh the dynamic lighting map */
 		this.generatePlayerDistanceLightingMap(world, deltaTime);
 
 		/* Update zoom. */
@@ -230,16 +217,18 @@ public class GraphicView extends JPanel implements View {
 
 		/* Update Follow X */
 		float viewCenterX = this.getWidth() / 2.f;
-		if (!Utility.intcmp((int)(world.getPlayerX()), (int)viewCenterX, 5)) {
-			float dir = this.player.getLocation().getX() < viewCenterX ? 1.f : -1.f;
-			moveX = dir * Math.abs((float)this.player.getLocation().getX() - viewCenterX) * this.cameraFollowSpeed * deltaTime;
+		float playerPixelX = this.worldCoordinatesToPixel(this.player.getPosition()).getX();
+		if (!Utility.intcmp((int)(playerPixelX), (int)viewCenterX, 5)) {
+			float dir = playerPixelX < viewCenterX ? 1.f : -1.f;
+			moveX = dir * Math.abs((float)playerPixelX - viewCenterX) * this.cameraFollowSpeed * deltaTime;
 		}
 
 		/* Update Follow Y */
 		float viewCenterY = this.getHeight() / 2.f;
-		if (!Utility.floatcmp((float)(world.getPlayerY()), viewCenterY, 1.f)) {
-			float dir = this.player.getLocation().getY() < viewCenterY ? 1.f : -1.f;
-			moveY = dir * Math.abs((float)this.player.getLocation().getY() - viewCenterY) * this.cameraFollowSpeed * deltaTime;
+		float playerPixelY = this.worldCoordinatesToPixel(this.player.getPosition()).getY();
+		if (!Utility.floatcmp((float)(playerPixelY), viewCenterY, 1.f)) {
+			float dir = playerPixelY < viewCenterY ? 1.f : -1.f;
+			moveY = dir * Math.abs((float)playerPixelY- viewCenterY) * this.cameraFollowSpeed * deltaTime;
 		}
 
 		/* Move the camera. */
@@ -261,6 +250,7 @@ public class GraphicView extends JPanel implements View {
 			this.cameraPosition.setY(factorY);
 		}
 
+		/* Print debug info */
 		if (Utility.DEBUG_GRAPHICS) {
 			System.out.println("Camera Position: " + this.cameraPosition.toString());
 			System.out.println("Window Width: " + String.valueOf(this.getWidth()) + " Window Height: " + String.valueOf(this.getHeight()));
@@ -271,9 +261,14 @@ public class GraphicView extends JPanel implements View {
 		this.update(world);
 	}
 
+	/**
+	 * Is called whenever the level changes
+	 * 
+	 * @param world The world in which the level changed.
+	 */
 	@Override
 	public void onLevelChanged(World world) {
-		System.out.println("uffbuff");
+		/* Generate a shading map for the new level */
 		this.generateLevelLightingMap(world);
 	}
 
@@ -319,20 +314,22 @@ public class GraphicView extends JPanel implements View {
 
 	/**
      * Generates a lighting map for the level world.
+	 * 
+	 * @param world The world to generate the shading map for.
      */
     public void generateLevelLightingMap(World world) {
 		/* lighting map should not be null */
-		if (this.lightingMap == null) {
-			this.lightingMap = new float[world.getHeight()][world.getWidth()];
+		if (this.levelLightingMap == null) {
+			this.levelLightingMap = new float[world.getHeight()][world.getWidth()];
 		}
 
         /* Set empty fields to brightness 1.0f and obstacle fields to -1.0f */
         for (int i = 0; i < world.getWidth(); ++i) {
             for (int j = 0; j < world.getHeight(); ++j) {
                 if (world.getObstacleMap()[j][i]) {
-                    this.lightingMap[j][i] = -1.0f;
+                    this.levelLightingMap[j][i] = -1.0f;
                 } else {
-                    this.lightingMap[j][i] = 1.0f;
+                    this.levelLightingMap[j][i] = 1.0f;
                 }
             }
         }
@@ -347,7 +344,7 @@ public class GraphicView extends JPanel implements View {
         while (s.size() != 0) {
             Point2d top = s.pop();
             /* Light this field if its not lit. */
-            if (this.lightingMap[top.getY()][top.getX()] == -1.0f) {
+            if (this.levelLightingMap[top.getY()][top.getX()] == -1.0f) {
                 int numLightedNeighbors = 0;
                 float lightingSum = 0.0f;
                 /* Calculate Lighting for this field. */
@@ -357,7 +354,7 @@ public class GraphicView extends JPanel implements View {
                     if (x < 0 || x >= world.getWidth() || y < 0 || y >= world.getHeight()) {
                         continue;
                     }
-                    float fieldVal = this.lightingMap[y][x];
+                    float fieldVal = this.levelLightingMap[y][x];
                     if (fieldVal != -1.0f) {
                         lightingSum += fieldVal;
                         numLightedNeighbors++;
@@ -366,7 +363,7 @@ public class GraphicView extends JPanel implements View {
                         s.push(new Point2d(x, y));
                     }
                 }
-                this.lightingMap[top.getY()][top.getX()] = (lightingSum / (float) numLightedNeighbors) * 0.95f;
+                this.levelLightingMap[top.getY()][top.getX()] = (lightingSum / (float) numLightedNeighbors) * 0.95f;
             /* This field is already lit af. */
             } else {
                 /* Push unlit neighbors to stack. */
@@ -376,7 +373,7 @@ public class GraphicView extends JPanel implements View {
                     if (x < 0 || x >= world.getWidth() || y < 0 || y >= world.getHeight()) {
                         continue;
                     }
-                    float fieldVal = this.lightingMap[y][x];
+                    float fieldVal = this.levelLightingMap[y][x];
                     if (fieldVal == -1.0f) {
                         s.push(new Point2d(x, y));
                     }
@@ -385,9 +382,102 @@ public class GraphicView extends JPanel implements View {
         }
     }
 
+	/**
+	 * Translates world coordinates into pixel coordinates.
+	 * 
+	 * @param x The world-x-axis coordinate.
+	 * @param y The world-y-axis coordinate.
+	 * @return The position of the coresponding pixel.
+	 */
+	Point2d worldCoordinatesToPixel(int x, int y) {
+		return new Point2d(
+			(int)((x * cameraDimension.width) + this.cameraPosition.getX()),
+			(int)((y * cameraDimension.height) + this.cameraPosition.getY())
+		);
+	}
+
+	/**
+	 * Translates world coordinates into pixel coordinates.
+	 * 
+	 * @param worldCoordinates The worl-coordinates.
+	 * @return The position of the coresponding pixel.
+	 */
+	Point2d worldCoordinatesToPixel(Point2d worldCoorindates) {
+		return new Point2d(
+			(int)((worldCoorindates.getX() * cameraDimension.width) + this.cameraPosition.getX()),
+			(int)((worldCoorindates.getY() * cameraDimension.height) + this.cameraPosition.getY())
+		);
+	}
+
+	/**
+	 * Loads all game textures.
+	 */
+	private void loadTextures() {
+		this.playerTexture = this.loadTexture("steve.png");
+		this.houseTexture = this.loadTexture("diamond_ore.png");
+		this.creeperTexture = this.loadTexture("creeper.png");
+		this.stoneTexture = this.loadTexture("stone.png");
+		this.cobbleStoneTexture = this.loadTexture("cobblestone.png");
+	}
+	
+	/**
+	 * loads a texture
+	 * @param filename
+	 * 
+	 * @return the loaded texture if successfull, else null
+	 */
+	private BufferedImage loadTexture(String filename) {
+		try {
+			return ImageIO.read(new File(this.TEXTURE_PATH, filename));
+		} catch (IOException e) {
+			System.out.println(String.format("Loading Texture '%s' failed.", filename));
+			return null;
+		}
+	}
+
+	/**
+	 * Gets the lighting object of a specific field.
+	 * 
+	 * @param locationX The x-axis coordinate of the field.
+	 * @param locationY The y-axis coordinate of the field.
+	 * @return The lighting for that specific field.
+	 */
+	private Lighting getLighting(int locationX, int locationY) {
+		return new Lighting(this.playerDistanceLightingMap[locationY][locationX]);
+	}
+
+	/**
+	 * Gets the lighting object of a specific field.
+	 * 
+	 * @param location The position of the field.
+	 * @return The lighting for that specific field.
+	 */
+	private Lighting getLighting(Point2d location) {
+		return new Lighting(this.playerDistanceLightingMap[location.getY()][location.getX()]);
+	}
+
+	/**
+	 * Gets the camera dimesnion.
+	 * 
+	 * @return The camera dimension
+	 */
+	public Dimension getCameraDimension() {
+		return this.cameraDimension;
+	}
+
+	/**
+	 * Gets whether this view is enabled or not.
+	 * 
+	 * @return Whether this view is enabled or not.
+	 */
 	@Override
 	public boolean getIsEnabled() { return this.isEnabled; }
 
+	/**
+	 * Sets whether this view is enabled or not.
+	 * 
+	 * @return Wheter this view is enabled or not.
+	 */
 	@Override
 	public void setIsEnabled(boolean isEnabled) { this.isEnabled = isEnabled; }
 	

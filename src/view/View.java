@@ -15,11 +15,33 @@ public interface View {
 	 */
 	void update(World world);
 
+	/**
+	 * Updates the views camera.
+	 * Gets called every frame.
+	 * 
+	 * @param world The current world.
+	 * @param deltaTime The time that passed by since the last call to any implementation of this method.
+	 */
 	void updateCamera(World world, float deltaTime);
 
+	/**
+	 * Gets called whenever the level has changed.
+	 * 
+	 * @param world The world of which the level changed.
+	 */
 	void onLevelChanged(World world);
 
+	/**
+	* Gets whether this view is enabled or not.
+	* 
+	* @return Whether this view is enabled or not.
+	*/
 	boolean getIsEnabled();
 
+	/**
+	 * Sets whether this view is enabled or not.
+	 * 
+	 * @return Wheter this view is enabled or not.
+	 */
 	void setIsEnabled(boolean isEnabled);
 }

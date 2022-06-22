@@ -29,24 +29,11 @@ public class World {
 
     private int level = 1;
 
-    /**
-     * The player's x position in the world.
-     */
-    private int playerX = 0;
-    /**
-     * The player's y position in the world.
-     */
-    private int playerY = 0;
-
 	private ArrayList<Enemy> enemies;
+    public EnemyPathTable enemyPathingTable;
 
-    /* The X and Y position of the start field. */
-    private int startX = 0;
-    private int startY = 0;
-
-    /* The x and y position of the finish field. */
-    private int finishX = 9;
-    private int finishY = 9;
+    /* The  position of the start field. */
+    private Point2d playerPosition, startPosition, finishPosition;
 
     /**
      * Set of views registered to be notified of world updates.
@@ -75,12 +62,13 @@ public class World {
         // Normally, we would check the arguments for proper values
         this.width = width;
         this.height = height;
-
+        this.playerPosition = new Point2d(0, 0);
+        this.startPosition = new Point2d(0, 0);
+        this.finishPosition = new Point2d(0, 0);
         this.worldGenerators = new ArrayList<WorldGenerator>();
         this.worldGenerators.add(new PathWorldGenerator(this));
         this.worldGenerators.add(new CaveWorldGenerator(this));
         //this.worldGenerator = new PathWorldGenerator(this);
-
         this.resetWorld();
     }
 
@@ -97,6 +85,7 @@ public class World {
 
         Random rnd = new Random();
         this.worldGenerators.get(rnd.nextInt(this.worldGenerators.size())).generateWorld();
+        this.enemyPathingTable = new EnemyPathTable(this);
         ///this.generateLightingMap();
         for (View view : this.views) {
             view.onLevelChanged(this);
@@ -150,6 +139,32 @@ public class World {
     public int getHeight() {
         return height;
     }
+    /**
+     * Updates the point based upon a given point.
+     * 
+     * @param newPos The new position to set.
+     */
+    public void setPlayerLocation(Point2d newPos){
+        playerPosition.setPoint(newPos);
+    }
+
+    /**
+     * Returns the current player position
+     * 
+     * @return The current player position as a point.
+     */
+    public Point2d getPlayerLocation(){
+        return this.playerPosition;
+    }
+
+    /**
+     * Returns a copy of the current player position
+     * 
+     * @return A copy of the current player position as a point.
+     */
+    public Point2d getPlayerCopy(){
+        return this.playerPosition.copy();
+    }
 
     /**
      * Gets the x-position of the player.
@@ -157,7 +172,7 @@ public class World {
      * @return The x-position of the player
      */
     public int getPlayerX() {
-        return playerX;
+        return playerPosition.getX();
     }
 
     /**
@@ -166,8 +181,8 @@ public class World {
      * @param playerX The new x-position
      */
     public void setPlayerX(int playerX) {
-        this.playerX = playerX;
-
+        this.playerPosition.setX(playerX);
+        
         updateViews();
     }
 
@@ -177,17 +192,16 @@ public class World {
      * @return The y-position of the player
      */
     public int getPlayerY() {
-        return playerY;
+        return playerPosition.getY();
     }
 
-    // TODO remove
+   /**
+    * Sets the y-coordinate of the player
+
+    * @param playerY The y-coordinate to set.
+    */
     public void setPlayerY(int playerY) {
-        /*
-         * border logic in controller
-         */
-        //playerY = Math.max(0, playerY);
-        //playerY = Math.min(getHeight() - 1, playerY);
-        this.playerY = playerY;
+        this.playerPosition.setY(playerY);
 
         updateViews();
     }
@@ -242,7 +256,7 @@ public class World {
      * @return The x-value.
      */
     public int getStartX() {
-        return this.startX;
+        return this.startPosition.getX();
     }
 
     /**
@@ -251,7 +265,7 @@ public class World {
      * @param x The new x of the start-field
      */
     public void setStartX(int x) {
-        this.startX = x;
+        this.startPosition.setX(x);
     }
 
     /**
@@ -260,7 +274,7 @@ public class World {
      * @return The y-value.
      */
     public int getStartY() {
-        return this.startY;
+        return this.startPosition.getY();
     }
 
     /**
@@ -269,7 +283,25 @@ public class World {
      * @param y The new y of the start-field
      */
     public void setStartY(int y) {
-        this.startY = y;
+        this.startPosition.setY(y);
+    }
+
+    /**
+     * Returns the current start position
+     * 
+     * @return The current start position as a point.
+     */
+    public Point2d getStartLocation(){
+        return this.startPosition;
+    }
+
+    /**
+     * Returns a copy of the current start position
+     * 
+     * @return A copy of the current start position as a point.
+     */
+    public Point2d getStartCopy(){
+        return this.startPosition.copy();
     }
 
     /**
@@ -278,36 +310,7 @@ public class World {
      * @param start The start-point to set
      */
     public void setStart(Point2d start) {
-        setStartX(start.getX());
-        setStartY(start.getY());
-    }
-
-    /**
-     * Sets the x-coordinate of the finish-field
-     *
-     * @param x The new x of the finish-field
-     */
-    public void setFinishX(int x) {
-        this.finishX = x;
-    }
-
-    /**
-     * Sets the y-coordinate of the finish-field
-     *
-     * @param y The new y of the finish-field
-     */
-    public void setFinishY(int y) {
-        this.finishY = y;
-    }
-
-    /**
-     * Sets the finish-point given as a point
-     *
-     * @param finish The finish-point
-     */
-    public void setFinish(Point2d finish) {
-        setFinishX(finish.getX());
-        setFinishY(finish.getY());
+        startPosition.setPoint(start);
     }
 
     /**
@@ -316,17 +319,63 @@ public class World {
      * @return The x-value.
      */
     public int getFinishX() {
-        return this.finishX;
+        return this.finishPosition.getX();
     }
 
     /**
+     * Sets the x-coordinate of the finish-field
+     *
+     * @param x The new x of the finish-field
+     */
+    public void setFinishX(int x) {
+        this.finishPosition.getX();
+    }
+
+     /**
      * returns the y-coordinate of the finish-field
      *
      * @return The y-value.
      */
     public int getFinishY() {
-        return this.finishY;
+        return this.finishPosition.getY();
     }
+
+    /**
+     * Sets the y-coordinate of the finish-field
+     *
+     * @param y The new y of the finish-field
+     */
+    public void setFinishY(int y) {
+        this.finishPosition.setY(y);
+    }
+
+    /**
+     * Returns the current finish position
+     * 
+     * @return The current finish position as a point.
+     */
+    public Point2d getFinishLocation(){
+        return this.finishPosition;
+    }
+
+    /**
+     * Returns a copy of the current finish position
+     * 
+     * @return A copy of the current finish position as a point.
+     */
+    public Point2d getFinishCopy(){
+        return this.finishPosition.copy();
+    }
+
+    /**
+     * Sets the finish-point given as a point
+     *
+     * @param finish The finish-point
+     */
+    public void setFinish(Point2d finish) {
+        finishPosition.setPoint(finish);
+    }
+
     /**
      * Returns the reference to the Arraylist of two-dimensional points of fields without collision.
      * @return An Arraylist of the collision-free points.
@@ -428,8 +477,10 @@ public class World {
     public void movePlayer(MovementDirection direction) {
         // The direction tells us exactly how much we need to move along
         // every direction
-        setPlayerX(getPlayerX() + direction.deltaX);
-        setPlayerY(getPlayerY() + direction.deltaY);
+        // TODO check
+        //setPlayerX(getPlayerX() + direction.deltaX);
+        //setPlayerY(getPlayerY() + direction.deltaY);
+        getPlayerLocation().add(direction.deltaX, direction.deltaY);
     }
 
     /**
@@ -459,6 +510,7 @@ public class World {
     public void registerView(View view) {
         views.add(view);
         view.onLevelChanged(this);
+        view.updateCamera(this, 0.f);
         view.update(this);
     }
 

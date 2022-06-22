@@ -23,7 +23,7 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
     private World world;
     private List<View> views;
 
-    private boolean enemy_timout = false, alreadyPressed = false;
+    private boolean enemy_timout = false;
 
     /**
      * Creates a new instance.
@@ -46,8 +46,10 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
 
     public void updateEnemies() {
         for (Enemy enemy : world.getEnemies()) {
-
-            int distanceX = world.getPlayerX() - enemy.getPositionX();
+            // TODO change
+            MovementDirection enemyMove = world.enemyPathingTable.enemyMoveCompute(enemy.getLocation());
+            enemy.getLocation().add(enemyMove.deltaX, enemyMove.deltaY);
+            /*int distanceX = world.getPlayerX() - enemy.getPositionX();
             int distanceY = enemy.getPositionY() - world.getPlayerY();
 
             boolean moveTowardsPlayer = true;
@@ -77,7 +79,7 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
                 handleXFirst = !handleXFirst; // toggle if move unsuccessful
                 if (i == 1)  // tried moving in player direction, now try opposite
                     moveTowardsPlayer = false;
-            }
+            }*/
         }
     }
 
@@ -90,62 +92,67 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (!alreadyPressed) {
-            alreadyPressed = true;
-            // Check if we need to do something. Tells the world to move the player.
-            MovementDirection dir;
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_UP:
-                    dir = MovementDirection.UP;
-                    break;
+        // Check if we need to do something. Tells the world to move the player.
+        MovementDirection dir;
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_UP:
+            case KeyEvent.VK_W:
+                dir = MovementDirection.UP;
+                break;
 
-                case KeyEvent.VK_DOWN:
-                    dir = MovementDirection.DOWN;
-                    break;
+            case KeyEvent.VK_DOWN:
+            case KeyEvent.VK_S:
+                dir = MovementDirection.DOWN;
+                break;
 
-                case KeyEvent.VK_LEFT:
-                    dir = MovementDirection.LEFT;
-                    break;
+            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_A:
+                dir = MovementDirection.LEFT;
+                break;
 
-                case KeyEvent.VK_RIGHT:
-                    dir = MovementDirection.RIGHT;
-                    break;
+            case KeyEvent.VK_RIGHT:
+            case KeyEvent.VK_D:
+                dir = MovementDirection.RIGHT;
+                break;
 
-                default:
-                    dir = MovementDirection.NONE;
-            }
-
-            int newLocationX = world.getPlayerX() + dir.deltaX, newLocationY = world.getPlayerY() + dir.deltaY;
-            if (world.canMoveToField(newLocationX, newLocationY)) {
-                world.setPlayerLocation(newLocationX, newLocationY);
-            } else {
-                System.out.println("Da ist ne Wand!");
-            }
-
-            if (world.getPlayerX() == world.getFinishX() && world.getPlayerY() == world.getFinishY()) {
-                this.reset();
-            }
-        
-            if (enemy_timout) {
-                updateEnemies();
-            }
-            enemy_timout = !enemy_timout;
-
-            /* Gelegentlich auch mal sterben */
-            for (Enemy enemy : this.world.getEnemies()) {
-                if (enemy.getPositionX() == world.getPlayerX() && enemy.getPositionY() == world.getPlayerY()) {
-                    this.resetGame();
-                }
-            }
-
-            world.setPlayerLocation(world.getPlayerX(), world.getPlayerY());
+            default:
+                dir = MovementDirection.NONE;
         }
+
+        int newLocationX = world.getPlayerX() + dir.deltaX, newLocationY = world.getPlayerY() + dir.deltaY;
+        if (world.canMoveToField(newLocationX, newLocationY)) {
+            world.setPlayerLocation(newLocationX, newLocationY);
+        } else {
+            System.out.println("Da ist ne Wand!");
+            return; // TODO check - enemy only updated on player move action 
+        }
+
+        if (world.getPlayerX() == world.getFinishX() && world.getPlayerY() == world.getFinishY()) {
+            this.reset();
+        }
+        // update the enemies
+        this.world.enemyPathingTable.updatePlayerPosOnEnemyMap(dir);
+        updateEnemies();
+        
+        ///if (enemy_timout) {
+        ///    updateEnemies();
+        ///}
+        ///enemy_timout = !enemy_timout;
+
+        /* Gelegentlich auch mal sterben */
+        for (Enemy enemy : this.world.getEnemies()) {
+            if (enemy.getPositionX() == world.getPlayerX() && enemy.getPositionY() == world.getPlayerY()) {
+                this.resetGame();
+            }
+        }
+
+        world.setPlayerLocation(world.getPlayerX(), world.getPlayerY());
     }
+    
 
     @Override
     public void keyReleased(KeyEvent e) {
         // TODO Auto-generated method stub
-        alreadyPressed = false;
     }
 
     /////////////////// Action Events ////////////////////////////////
@@ -193,7 +200,7 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
         this.world.incLevel();
         this.world.resetWorld();
         this.world.setPlayerLocation(this.world.getStartX(), this.world.getStartY());
-        for (int i = 0; i < 1 + (int)(this.world.getLevel() / 10); ++i) {
+        for (int i = 0; i <= 1 + (int)(this.world.getLevel() / 10); ++i) {
             Point2d spawnLocation = world.getEmptyFields().get(rnd.nextInt(world.getEmptyFields().size()));
             this.world.getEnemies().add(new Enemy(spawnLocation.getX(), spawnLocation.getY()));
         }
