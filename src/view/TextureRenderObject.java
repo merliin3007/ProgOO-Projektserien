@@ -12,15 +12,17 @@ import utility.Point2d;
 public class TextureRenderObject extends RenderObject {
 
     /* The texture to render this object as */
-    BufferedImage texture;
+    Texture texture;
+    float scaleFactor;
 
     /**
 	 * Creates a new instance.
 	 */
-    public TextureRenderObject(Point2d position, Lighting lighting, BufferedImage texture) {
+    public TextureRenderObject(Point2d position, Lighting lighting, Texture texture) {
         this.setPosition(position);
         this.setLighting(lighting);
         this.texture = texture;
+        this.scaleFactor = 1.f;
     }
 
     /**
@@ -32,15 +34,15 @@ public class TextureRenderObject extends RenderObject {
     public void draw(Graphics g, GraphicView view) {
         Point2d pixelPosition = view.worldCoordinatesToPixel(this.getPosition());
         /* Draw the texture */
-        if (this.texture == null) {
+        if (this.texture.getImage() == null) {
             /* Draw red square if texture is missing. */
             g.setColor(new Color(255, 0, 0));
             g.fillRect(pixelPosition.getX(), pixelPosition.getY(), 
             (int)view.getCameraDimension().getWidth(), (int)view.getCameraDimension().getHeight());
         } else {
             /* Draw the actual texture. */
-		    g.drawImage(texture, pixelPosition.getX(), pixelPosition.getY(), 
-                (int)view.getCameraDimension().getWidth(), (int)view.getCameraDimension().getHeight(), null);
+		    g.drawImage(texture.getImage(), pixelPosition.getX(), pixelPosition.getY(), 
+                (int)(view.getCameraDimension().getWidth() * this.scaleFactor), (int)(view.getCameraDimension().getHeight() * this.scaleFactor), null);
         }
         /* Draw the shadow above the texture */
 		g.setColor(new Color(0, 0, 0, (int)(255 * (1.f - (this.getLighting().getVal())))));
@@ -48,12 +50,16 @@ public class TextureRenderObject extends RenderObject {
             (int)view.getCameraDimension().getWidth(), (int)view.getCameraDimension().getHeight());
     }
 
+    public void setScaleFactor(float scaleFactor) {
+        this.scaleFactor = scaleFactor;
+    }
+
     /**
      * Gets the texture.
      * 
      * @return the texture.
      */
-    public BufferedImage getTexture() {
+    public Texture getTexture() {
         return this.texture;
     }
 
@@ -62,7 +68,7 @@ public class TextureRenderObject extends RenderObject {
      * 
      * @param texture the texture.
      */
-    public void setTexture(BufferedImage texture) {
+    public void setTexture(Texture texture) {
         this.texture = texture;
     }
 }

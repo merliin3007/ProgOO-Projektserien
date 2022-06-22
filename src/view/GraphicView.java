@@ -36,11 +36,13 @@ public class GraphicView extends JPanel implements View {
 	private final File TEXTURE_PATH = new File("resources");
 
 	/* Textures */
-	BufferedImage playerTexture;
-	BufferedImage houseTexture;
-	BufferedImage creeperTexture;
-	BufferedImage stoneTexture;
-	BufferedImage cobbleStoneTexture;
+	Texture playerTexture;
+	Texture houseTexture;
+	Texture zombieTexture;
+	Texture creeperTexture;
+	Texture creeperTriggeredTexture;
+	Texture stoneTexture;
+	Texture cobbleStoneTexture;
 
 	/* Colors */
 	private Color pathColor = new Color(200, 200, 200);
@@ -89,6 +91,7 @@ public class GraphicView extends JPanel implements View {
 	private ArrayList<RenderObject> obstacles = new ArrayList<RenderObject>();
 	/** A list of all enemy RenderObjects */
 	private ArrayList<RenderObject> enemies = new ArrayList<RenderObject>();
+	private ArrayList<ParticleRenderObject> particles = new ArrayList<ParticleRenderObject>();
 
 	/** The position of the camera */
 	private Point2f cameraPosition = new Point2f(10.f, 5.f);
@@ -129,6 +132,11 @@ public class GraphicView extends JPanel implements View {
 		/* Paint enemies */
 		for (RenderObject enemy : this.enemies) {
 			enemy.draw(g, this);
+		}
+
+		/* Paint particles */
+		for (ParticleRenderObject particle : this.particles) {
+			particle.draw(g, this);
 		}
 
 		/* Overlay */
@@ -178,7 +186,17 @@ public class GraphicView extends JPanel implements View {
 		this.enemies.clear();
 		for (Enemy enemy : world.getEnemies()) {
 			Point2d position = new Point2d(enemy.getPositionX(), enemy.getPositionY());
-			this.enemies.add(new TextureRenderObject(position, this.getLighting(position), this.creeperTexture));
+			switch (enemy.getRenderState()) {
+			case ZOMBIE:
+				this.enemies.add(new TextureRenderObject(position, this.getLighting(position), this.zombieTexture));
+				break;
+			case CREEPER:
+				this.enemies.add(new TextureRenderObject(position, this.getLighting(position), this.creeperTexture));
+				break;
+			case TRIGGERED_CREEPER:
+				this.enemies.add(new TextureRenderObject(position, this.getLighting(position), this.creeperTriggeredTexture));
+				break;
+			}
 		}
 
 		/* Overlay */
@@ -205,6 +223,12 @@ public class GraphicView extends JPanel implements View {
 	public void updateCamera(World world, float deltaTime) {
 		/* Refresh the dynamic lighting map */
 		this.generatePlayerDistanceLightingMap(world, deltaTime);
+
+		/* Update textures */
+		this.updateTextures(deltaTime);
+
+		/* Update particles */
+		this.updateParticles(deltaTime);
 
 		/* Update zoom. */
 		this.zoom = 1.f + (float)Math.log((double)world.getLevel()) * 0.5f;
@@ -281,6 +305,17 @@ public class GraphicView extends JPanel implements View {
 	private void move(float dirX, float dirY) {
 		this.cameraPosition.addX(dirX);
 		this.cameraPosition.addY(dirY);
+	}
+
+	private void updateParticles(float deltaTime) {
+		for (int i = 0; i < this.particles.size(); ++i) {
+			ParticleRenderObject particle = this.particles.get(i);
+			particle.updateFrame(deltaTime);
+			if (!particle.getIsPlaying()) {
+				this.particles.remove(i);
+				i -= 1;
+			}
+		}
 	}
 
 	/**
@@ -415,18 +450,61 @@ public class GraphicView extends JPanel implements View {
 	private void loadTextures() {
 		this.playerTexture = this.loadTexture("steve.png");
 		this.houseTexture = this.loadTexture("diamond_ore.png");
+		// TODO: replace with real zombie texture
+		this.zombieTexture = this.loadTexture("dirt.png");
 		this.creeperTexture = this.loadTexture("creeper.png");
+		this.creeperTriggeredTexture = this.loadAnimationTexture(new String[] { "creeper.png", "creeper_triggered.png" }, 10.f);
 		this.stoneTexture = this.loadTexture("stone.png");
 		this.cobbleStoneTexture = this.loadTexture("cobblestone.png");
+	}
+
+	/**
+	 * Updates all textures.
+	 * Gets called every frame.
+	 * 
+	 * @param deltaTime The time passed by since the last udpate.
+	 */
+	private void updateTextures(float deltaTime) {
+		this.playerTexture.updateFrame(deltaTime);
+		this.houseTexture.updateFrame(deltaTime);
+		this.creeperTexture.updateFrame(deltaTime);
+		this.creeperTriggeredTexture.updateFrame(deltaTime);
+		this.stoneTexture.updateFrame(deltaTime);
+		this.cobbleStoneTexture.updateFrame(deltaTime);
 	}
 	
 	/**
 	 * loads a texture
-	 * @param filename
 	 * 
+	 * @param filename
 	 * @return the loaded texture if successfull, else null
 	 */
-	private BufferedImage loadTexture(String filename) {
+	private Texture loadTexture(String filename) {
+		return new Texture(this.loadImage(filename));
+	}
+
+	/**
+	 * loads an animation texture.
+	 * 
+	 * @param filenames The filenames of the frames.
+	 * @param framerate The framerate of the animation.
+	 * @return The loaded animation texture.
+	 */
+	private AnimationTexture loadAnimationTexture(String[] filenames, float framerate) {
+		AnimationTexture animationTexture = new AnimationTexture(framerate);
+		for (String filename : filenames) {
+			animationTexture.addFrame(this.loadImage(filename));
+		}
+		return animationTexture;
+	}
+
+	/**
+	 * Loads a BufferedImage.
+	 * 
+	 * @param filename The filename of the image.
+	 * @return The loaded image or null if loading the image failed.
+	 */
+	private BufferedImage loadImage(String filename) {
 		try {
 			return ImageIO.read(new File(this.TEXTURE_PATH, filename));
 		} catch (IOException e) {
@@ -457,7 +535,7 @@ public class GraphicView extends JPanel implements View {
 	}
 
 	/**
-	 * Gets the camera dimesnion.
+	 * Gets the camera dimension.
 	 * 
 	 * @return The camera dimension
 	 */

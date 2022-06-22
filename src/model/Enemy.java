@@ -10,12 +10,26 @@ public class Enemy {
         enemyPos = new Point2d(x, y);
     }
 
+    public void update(World world) {
+        /* Move towards player */
+        MovementDirection enemyMove = world.enemyPathingTable.enemyMoveCompute(this.getLocation());
+        this.getLocation().add(enemyMove.deltaX, enemyMove.deltaY);
+    }
+
+    public void updateFrame(World world, float deltaTime) {
+
+    }
+
+    public EnemyRenderState getRenderState() {
+        return EnemyRenderState.ZOMBIE;
+    }
+
     /**
      * Gets the current location of the enemy as a point.
      * 
      * @return The current point as a direct reference.
      */
-    public Point2d getLocation(){
+    public Point2d getLocation() {
         return this.enemyPos;
     }
     /**

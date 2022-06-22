@@ -1,5 +1,6 @@
 package controller;
 
+import model.Creeper;
 import model.Enemy;
 import model.MovementDirection;
 import model.World;
@@ -47,8 +48,11 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
     public void updateEnemies() {
         for (Enemy enemy : world.getEnemies()) {
             // TODO change
-            MovementDirection enemyMove = world.enemyPathingTable.enemyMoveCompute(enemy.getLocation());
-            enemy.getLocation().add(enemyMove.deltaX, enemyMove.deltaY);
+            /// MovementDirection enemyMove = world.enemyPathingTable.enemyMoveCompute(enemy.getLocation());
+            /// enemy.getLocation().add(enemyMove.deltaX, enemyMove.deltaY);
+            enemy.update(this.world);
+
+
             /*int distanceX = world.getPlayerX() - enemy.getPositionX();
             int distanceY = enemy.getPositionY() - world.getPlayerY();
 
@@ -195,6 +199,9 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
 
     }
 
+    /**
+     * TODO: delete, moved to world
+     */
     private void reset() {
         Random rnd = new Random();
         this.world.incLevel();
@@ -202,10 +209,13 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
         this.world.setPlayerLocation(this.world.getStartX(), this.world.getStartY());
         for (int i = 0; i <= 1 + (int)(this.world.getLevel() / 10); ++i) {
             Point2d spawnLocation = world.getEmptyFields().get(rnd.nextInt(world.getEmptyFields().size()));
-            this.world.getEnemies().add(new Enemy(spawnLocation.getX(), spawnLocation.getY()));
+            this.world.getEnemies().add(new Creeper(spawnLocation.getX(), spawnLocation.getY()));
         }
     }
 
+    /**
+     * TODO: delete, moved to world
+     */
     private void resetGame() {
         this.world.setLevel(0);
         this.reset();
