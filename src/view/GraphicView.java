@@ -42,7 +42,7 @@ public class GraphicView extends JPanel implements View {
 	/** The scaling factor. */
 	private Dimension fieldDimension, cameraDimension;
 
-	private final File TEXTURE_PATH = new File("resources");
+	private final File TEXTURE_PATH = new File(new File("resources"), "textures");
 	private final File AUDIO_PATH = new File(new File("resources"), "audio");
 
 	/* Textures */
