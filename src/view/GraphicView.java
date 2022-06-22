@@ -18,6 +18,7 @@ import java.io.File;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 
 /* Project */
 import utility.Utility;
@@ -57,8 +58,8 @@ public class GraphicView extends JPanel implements View {
 	AnimationTexture particleExplosionTexture;
 
 	/* Audio Clips */
-	Clip soundtrackClip;
-	Clip explosionSoundClip;
+	AudioClip soundtrackClip;
+	AudioClip explosionSoundClip;
 
 	/* Colors */
 	private Color pathColor = new Color(200, 200, 200);
@@ -85,7 +86,7 @@ public class GraphicView extends JPanel implements View {
 
 		/* Load all audio clips */
 		this.loadAudioClips();
-		this.playAudioClip(this.soundtrackClip);
+		this.soundtrackClip.playLoop();
 
 		/* Init RenderObjects */
 		this.player = new TextureRenderObject(new Point2d(0, 0), new Lighting(1.f), this.playerTexture);
@@ -323,7 +324,7 @@ public class GraphicView extends JPanel implements View {
 	@Override
 	public void spawnExplosion(Point2d position, float size) {
 		this.particles.add(new ParticleRenderObject(position, new Lighting(size), this.particleExplosionTexture, size));
-		this.playAudioClip(this.explosionSoundClip);
+		this.explosionSoundClip.play();
 	}
 
 	/**
@@ -548,11 +549,15 @@ public class GraphicView extends JPanel implements View {
 	}
 
 	private void loadAudioClips() {
-		this.soundtrackClip = this.loadAudioClip("sweden.wav");
-		this.explosionSoundClip = this.loadAudioClip("explode.wav");
+		this.soundtrackClip = this.loadAudioClip("sweden.wav", .1f);
+		this.explosionSoundClip = this.loadAudioClip("explode.wav", 1.f);
 	}
 
-	private Clip loadAudioClip(String filename) {
+	private AudioClip loadAudioClip(String filename, float volume) {
+		return new AudioClip(loadClip(filename), volume);
+	}
+
+	private Clip loadClip(String filename) {
 		try {
 			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(AUDIO_PATH, filename).getAbsoluteFile());
 			Clip clip = AudioSystem.getClip();
@@ -562,13 +567,6 @@ public class GraphicView extends JPanel implements View {
 		} catch(Exception e) {
 			System.out.println(String.format("Couldn't load audio '%s'.", filename));
 			return null;
-		}
-	}
-
-	private void playAudioClip(Clip clip) {
-		if (clip != null) {
-			clip.stop();
-			clip.start();
 		}
 	}
 
