@@ -131,7 +131,7 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
             this.reset();
         }
         // update the enemies
-        this.world.enemyPathingTable.updatePlayerPosOnEnemyMap(dir);
+        this.world.enemyPathingTable.computeMap(world.getPlayerLocation());
         updateEnemies();
         
         ///if (enemy_timout) {
