@@ -9,6 +9,7 @@ public class Enemy {
 
     private Point2d enemyPos;
     private boolean isDrowned;
+    private boolean isAlive = true;
 
     public Enemy(int x, int y) {
         enemyPos = new Point2d(x, y);
@@ -154,5 +155,23 @@ public class Enemy {
      */
     public void setPositionY(int y) {
         this.enemyPos.setY(y);
+    }
+
+    /**
+     * Sets the life of the current enemy.
+     * 
+     * @param newLife The life to grant.
+     */
+    public void setIsAlive(boolean newLife){
+        this.isAlive = newLife;
+    }
+
+    /**
+     * Returns whether the given enemy is alive.
+     * 
+     * @return True if alive, false otherwise.
+     */
+    public boolean getIsAlive(){
+        return this.isAlive;
     }
 }

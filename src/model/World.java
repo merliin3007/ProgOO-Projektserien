@@ -31,10 +31,10 @@ public class World {
     private Difficulty difficulty = Difficulty.HARD;
     private final float CREEPER_ZOMBIE_SPAWN_RATIO = 0.2f;
 
-	private ArrayList<Enemy> enemies;
+    private ArrayList<Enemy> enemies;
     public EnemyPathTable enemyPathingTable;
 
-    /* The  position of the start field. */
+    /* The position of the start field. */
     private Point2d playerPosition, startPosition, finishPosition;
 
     /* Used to save all enemy positons */
@@ -56,7 +56,7 @@ public class World {
     /**
      * Creates a new world with the given height and width
      * 
-     * @param width The width of the new world
+     * @param width  The width of the new world
      * @param height The height of the new world.
      */
     public World(int width, int height) {
@@ -69,7 +69,7 @@ public class World {
         this.worldGenerators = new ArrayList<WorldGenerator>();
         this.worldGenerators.add(new PathWorldGenerator(this));
         this.worldGenerators.add(new CaveWorldGenerator(this));
-        ///this.resetWorld();
+        /// this.resetWorld();
         this.reset();
     }
 
@@ -105,11 +105,11 @@ public class World {
         this.incLevel();
         this.resetWorld();
         this.setPlayerLocation(this.getStartX(), this.getStartY());
-        for (int i = 0; i <= /*1 + (int)(this.getLevel() / 10)*/8; ++i) {
+        for (int i = 0; i <= 2 + (int) (this.getLevel() / 10); ++i) {
             Point2d spawnLocation = getEmptyFields().get(rnd.nextInt(getEmptyFields().size()));
-            Enemy newEnemy = rnd.nextFloat() < CREEPER_ZOMBIE_SPAWN_RATIO 
-                ? new Creeper(spawnLocation.getX(), spawnLocation.getY()) 
-                : new Enemy(spawnLocation.getX(), spawnLocation.getY());
+            Enemy newEnemy = rnd.nextFloat() < CREEPER_ZOMBIE_SPAWN_RATIO
+                    ? new Creeper(spawnLocation.getX(), spawnLocation.getY())
+                    : new Enemy(spawnLocation.getX(), spawnLocation.getY());
             this.getEnemies().add(newEnemy);
         }
     }
@@ -119,40 +119,51 @@ public class World {
         this.reset();
     }
 
-	private long lastTime = System.nanoTime();
+    private long lastTime = System.nanoTime();
 
     /**
      * Called every 16ms.
      */
-	public void timerTick(float time) {
-		long currentTime = System.nanoTime();
-    	float deltaTime = (currentTime - this.lastTime) / 1000000.f;
-		lastTime = currentTime;
+    public void timerTick(float time) {
+        long currentTime = System.nanoTime();
+        float deltaTime = (currentTime - this.lastTime) / 1000000.f;
+        lastTime = currentTime;
 
         /* Update enemies */
         for (Enemy enemy : this.enemies) {
             enemy.updateFrame(this, deltaTime);
         }
-
+        /* kill enemies upon death */
+        boolean kill = false;
+        for (int i = this.getEnemies().size() - 1; i >= 0; i--) {
+            if (!this.getEnemies().get(i).getIsAlive()) {
+                this.getEnemies().remove(i);
+                kill = true;
+            }
+        }
+        if (kill) {
+            this.updateViews();
+        }
         this.views.get(0).updateCamera(this, deltaTime);
     }
 
     public void updateEnemies() {
-        /* HashSet that contains all enemy positions, used for enemy-enemy-collision. 
-         * TODO: use Point2d instead of String, implement hash-method */
-        enemyPositions  = new HashSet<String>();
-        
+        /* Don't update pathing table in easy difficulty because it's not used. */
+        if (difficulty != Difficulty.EASY) {
+            this.enemyPathingTable.computeMap(this.getPlayerLocation());
+        }
+        /*
+         * HashSet that contains all enemy positions, used for enemy-enemy-collision.
+         * TODO: use Point2d instead of String, implement hash-method
+         */
+        enemyPositions = new HashSet<String>();
+
         /* update enemies */
         for (Enemy enemy : this.getEnemies()) {
             // update enemy
             enemy.update(this);
             // add position to weed set
             enemyPositions.add(enemy.getLocation().toString());
-        }
-
-        /* Don't update pathing table in easy difficulty because it's not used. */
-        if (difficulty != Difficulty.EASY) {
-            this.enemyPathingTable.computeMap(this.getPlayerLocation());
         }
     }
 
@@ -161,9 +172,10 @@ public class World {
      * 
      * @return A reference to the hash-set
      */
-    public HashSet<String> getEnemyPositions(){
+    public HashSet<String> getEnemyPositions() {
         return this.enemyPositions;
     }
+
     /**
      * Returns the width of the labyrinth-world.
      * 
@@ -187,7 +199,7 @@ public class World {
      * 
      * @param newPos The new position to set.
      */
-    public void setPlayerLocation(Point2d newPos){
+    public void setPlayerLocation(Point2d newPos) {
         playerPosition.setPoint(newPos);
     }
 
@@ -196,7 +208,7 @@ public class World {
      * 
      * @return The current player position as a point.
      */
-    public Point2d getPlayerLocation(){
+    public Point2d getPlayerLocation() {
         return this.playerPosition;
     }
 
@@ -205,7 +217,7 @@ public class World {
      * 
      * @return A copy of the current player position as a point.
      */
-    public Point2d getPlayerCopy(){
+    public Point2d getPlayerCopy() {
         return this.playerPosition.copy();
     }
 
@@ -225,7 +237,7 @@ public class World {
      */
     public void setPlayerX(int playerX) {
         this.playerPosition.setX(playerX);
-        
+
         updateViews();
     }
 
@@ -251,17 +263,19 @@ public class World {
 
     /**
      * Checks whether the given point is within world boundaries
+     * 
      * @param pos The two-dimensional point to check
      * @return True if within the field, false otherwise
      */
-    public boolean isValidField(Point2d pos){
+    public boolean isValidField(Point2d pos) {
         return isValidField(pos.getX(), pos.getY());
     }
 
     /**
      * Checks whether the given coordinates are within world boundaries
-     * @param xPos  The x-coordinate to check
-     * @param yPos  The y-coordinate to check
+     * 
+     * @param xPos The x-coordinate to check
+     * @param yPos The y-coordinate to check
      * @return True if within the field, false otherwise
      */
     public boolean isValidField(int xPos, int yPos) {
@@ -270,6 +284,7 @@ public class World {
 
     /**
      * Checks whether an entity can move to a given field.
+     * 
      * @param xPos The x-position of the field to check.
      * @param yPos The y-position of the field to check.
      * @return True if within the world and no collision occurs, false otherwise.
@@ -280,9 +295,11 @@ public class World {
 
     /**
      * Calculates the collisions around a given field
-     * @param xPos  The x-coordinate of the field to check
-     * @param yPos  The y-coordinate of the field to check
-     * @return The amount of fields with collisions around the given field, so a number inbetween 0 and 4.
+     * 
+     * @param xPos The x-coordinate of the field to check
+     * @param yPos The y-coordinate of the field to check
+     * @return The amount of fields with collisions around the given field, so a
+     *         number inbetween 0 and 4.
      */
     public int collisionAroundField(int xPos, int yPos) {
         int sum = 0;
@@ -334,7 +351,7 @@ public class World {
      * 
      * @return The current start position as a point.
      */
-    public Point2d getStartLocation(){
+    public Point2d getStartLocation() {
         return this.startPosition;
     }
 
@@ -343,7 +360,7 @@ public class World {
      * 
      * @return A copy of the current start position as a point.
      */
-    public Point2d getStartCopy(){
+    public Point2d getStartCopy() {
         return this.startPosition.copy();
     }
 
@@ -374,7 +391,7 @@ public class World {
         this.finishPosition.getX();
     }
 
-     /**
+    /**
      * returns the y-coordinate of the finish-field
      *
      * @return The y-value.
@@ -397,7 +414,7 @@ public class World {
      * 
      * @return The current finish position as a point.
      */
-    public Point2d getFinishLocation(){
+    public Point2d getFinishLocation() {
         return this.finishPosition;
     }
 
@@ -406,7 +423,7 @@ public class World {
      * 
      * @return A copy of the current finish position as a point.
      */
-    public Point2d getFinishCopy(){
+    public Point2d getFinishCopy() {
         return this.finishPosition.copy();
     }
 
@@ -420,22 +437,29 @@ public class World {
     }
 
     /**
-     * Returns the reference to the Arraylist of two-dimensional points of fields without collision.
+     * Returns the reference to the Arraylist of two-dimensional points of fields
+     * without collision.
+     * 
      * @return An Arraylist of the collision-free points.
      */
     public final ArrayList<Point2d> getEmptyFields() {
         return this.emptyFields;
     }
+
     /**
      * Returns the list of enemy-objects.
+     * 
      * @return An ArrayList of enemies.
      */
     public ArrayList<Enemy> getEnemies() {
         return this.enemies;
     }
+
     /**
      * Returns the obstacle-map of the labyrinth-world.
-     * @return The obstacleMap where a true value implies an obstacle is at that position.
+     * 
+     * @return The obstacleMap where a true value implies an obstacle is at that
+     *         position.
      */
     public boolean[][] getObstacleMap() {
         return this.obstacleMap;
@@ -443,6 +467,7 @@ public class World {
 
     /**
      * Returns the current level of the world.
+     * 
      * @return The current level of the world.
      */
     public int getLevel() {
@@ -451,6 +476,7 @@ public class World {
 
     /**
      * Sets the level of the world, as long as the provided level is bigger than 0
+     * 
      * @param level The level to set.
      */
     public void setLevel(int level) {
@@ -476,7 +502,8 @@ public class World {
      * @return true in case of a
      */
     public boolean getField(int xPos, int yPos) {
-        return xPos < 0 || xPos >= this.getWidth() || yPos < 0 || yPos >= this.getHeight() || this.obstacleMap[yPos][xPos];
+        return xPos < 0 || xPos >= this.getWidth() || yPos < 0 || yPos >= this.getHeight()
+                || this.obstacleMap[yPos][xPos];
     }
 
     /**
@@ -582,7 +609,8 @@ public class World {
     }
 
     /**
-     * Calculates the (diagonal) distance inbetween two two-dimensional points, given by their coordinates.
+     * Calculates the (diagonal) distance inbetween two two-dimensional points,
+     * given by their coordinates.
      * 
      * @param x1 The x-coordinate of the first point.
      * @param y1 The y-coordinate of the first point.

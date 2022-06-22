@@ -80,10 +80,8 @@ public class Creeper extends Enemy {
         /* Spawn the explosion animation */
         world.spawnExplosion(this.getLocation().copy(), this.EXPLOSION_SIZE);
 
-        /* Respawn */
-        Point2d respawnPosition = world.getEmptyFields().get(rnd.nextInt(world.getEmptyFields().size()));
-        this.setPositionX(respawnPosition.getX());
-        this.setPositionY(respawnPosition.getY());
+        // Kill Enemy
+        this.setIsAlive(false);
 
         /* Reset */
         this.reset();
