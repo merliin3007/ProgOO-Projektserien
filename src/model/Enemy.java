@@ -1,13 +1,18 @@
 package model;
 
+import java.util.Random;
+
 import utility.Point2d;
 
 public class Enemy {
     
     private Point2d enemyPos;
+    private boolean isDrowned;
 
     public Enemy(int x, int y) {
         enemyPos = new Point2d(x, y);
+        Random rnd = new Random();
+        this.isDrowned = rnd.nextBoolean();
     }
 
     public void update(World world) {
@@ -21,7 +26,7 @@ public class Enemy {
     }
 
     public EnemyRenderState getRenderState() {
-        return EnemyRenderState.ZOMBIE;
+        return this.isDrowned ? EnemyRenderState.DROWNED : EnemyRenderState.ZOMBIE;
     }
 
     /**

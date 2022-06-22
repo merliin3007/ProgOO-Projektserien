@@ -71,6 +71,13 @@ public class Creeper extends Enemy {
             }
         }
 
+        /* Tell everbody that something has changed. */
+        world.levelChanged();
+
+        /* Make the enemies realize they can now move through walls */
+        world.getEnemyPathTable().removeCollisionObjects(world.getObstacleMap());
+
+        /* Spawn the explosion animation */
         world.spawnExplosion(this.getLocation().copy(), this.EXPLOSION_SIZE);
 
         /* Respawn */

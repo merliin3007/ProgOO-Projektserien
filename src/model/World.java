@@ -87,6 +87,10 @@ public class World {
         this.worldGenerators.get(rnd.nextInt(this.worldGenerators.size())).generateWorld();
         this.enemyPathingTable = new EnemyPathTable(this);
         ///this.generateLightingMap();
+        this.levelChanged();
+    }
+
+    public void levelChanged() {
         for (View view : this.views) {
             view.onLevelChanged(this);
         }
@@ -107,14 +111,17 @@ public class World {
     ///    }
     ///}
 
-    private void reset() {
+    public void reset() {
         Random rnd = new Random();
         this.incLevel();
         this.resetWorld();
         this.setPlayerLocation(this.getStartX(), this.getStartY());
         for (int i = 0; i <= 1 + (int)(this.getLevel() / 10); ++i) {
             Point2d spawnLocation = getEmptyFields().get(rnd.nextInt(getEmptyFields().size()));
-            this.getEnemies().add(new Creeper(spawnLocation.getX(), spawnLocation.getY()));
+            Enemy newEnemy = rnd.nextBoolean() 
+                ? new Creeper(spawnLocation.getX(), spawnLocation.getY()) 
+                : new Enemy(spawnLocation.getX(), spawnLocation.getY());
+            this.getEnemies().add(newEnemy);
         }
     }
 
@@ -504,9 +511,6 @@ public class World {
     public void movePlayer(MovementDirection direction) {
         // The direction tells us exactly how much we need to move along
         // every direction
-        // TODO check
-        //setPlayerX(getPlayerX() + direction.deltaX);
-        //setPlayerY(getPlayerY() + direction.deltaY);
         getPlayerLocation().add(direction.deltaX, direction.deltaY);
     }
 
@@ -519,6 +523,10 @@ public class World {
     public void setPlayerLocation(final int xPos, final int yPos) {
         setPlayerX(xPos);
         setPlayerY(yPos);
+    }
+
+    public EnemyPathTable getEnemyPathTable() {
+        return this.enemyPathingTable;
     }
 
     ///public float[][] getPlayerDistanceLightingMap() {

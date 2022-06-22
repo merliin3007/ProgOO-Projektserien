@@ -39,6 +39,7 @@ public class GraphicView extends JPanel implements View {
 	Texture playerTexture;
 	Texture houseTexture;
 	Texture zombieTexture;
+	Texture drownedTexture;
 	Texture creeperTexture;
 	Texture creeperTriggeredTexture;
 	Texture stoneTexture;
@@ -192,6 +193,9 @@ public class GraphicView extends JPanel implements View {
 			switch (enemy.getRenderState()) {
 			case ZOMBIE:
 				this.enemies.add(new TextureRenderObject(position, this.getLighting(position), this.zombieTexture));
+				break;
+			case DROWNED:
+				this.enemies.add(new TextureRenderObject(position, this.getLighting(position), this.drownedTexture));
 				break;
 			case CREEPER:
 				this.enemies.add(new TextureRenderObject(position, this.getLighting(position), this.creeperTexture));
@@ -458,8 +462,8 @@ public class GraphicView extends JPanel implements View {
 	private void loadTextures() {
 		this.playerTexture = this.loadTexture("steve.png");
 		this.houseTexture = this.loadTexture("diamond_ore.png");
-		// TODO: replace with real zombie texture
-		this.zombieTexture = this.loadTexture("dirt.png");
+		this.zombieTexture = this.loadTexture("zombie.png");
+		this.drownedTexture = this.loadTexture("drowned.png");
 		this.creeperTexture = this.loadTexture("creeper.png");
 		this.creeperTriggeredTexture = this.loadAnimationTexture(new String[] { "creeper.png", "creeper_triggered.png" }, 10.f);
 		this.stoneTexture = this.loadTexture("stone.png");

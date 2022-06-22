@@ -21,6 +21,22 @@ public class EnemyPathTable {
         // compute the map once initially
         computeMap(world.getStartLocation());
     }
+    
+    /**
+     * Inserts all the map-collisions into the map, so they are not calculated while
+     * using the map
+     *
+     * @param collisionMap The collision-map of the world to consider.
+     */
+    public void removeCollisionObjects(boolean[][] collisionMap) {
+        for (int y = 0; y < collisionMap.length; y++) {
+            for (int x = 0; x < collisionMap[y].length; x++) {
+                if (!collisionMap[y][x] && getValue(x, y) == Integer.MAX_VALUE) {
+                    this.shortestPathToPlayer[y][x] = 0;
+                }
+            }
+        }
+    }
 
     /**
      * Inserts all the map-collisions into the map, so they are not calculated while

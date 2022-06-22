@@ -132,7 +132,7 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
         }
 
         if (world.getPlayerX() == world.getFinishX() && world.getPlayerY() == world.getFinishY()) {
-            this.reset();
+            this.world.reset();
         }
         // update the enemies
         this.world.enemyPathingTable.computeMap(world.getPlayerLocation());
@@ -146,7 +146,7 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
         /* Gelegentlich auch mal sterben */
         for (Enemy enemy : this.world.getEnemies()) {
             if (enemy.getPositionX() == world.getPlayerX() && enemy.getPositionY() == world.getPlayerY()) {
-                this.resetGame();
+                this.world.resetGame();
             }
         }
 
@@ -197,27 +197,5 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
     public void mouseExited(MouseEvent e) {
         // TODO Auto-generated method stub
 
-    }
-
-    /**
-     * TODO: delete, moved to world
-     */
-    private void reset() {
-        Random rnd = new Random();
-        this.world.incLevel();
-        this.world.resetWorld();
-        this.world.setPlayerLocation(this.world.getStartX(), this.world.getStartY());
-        for (int i = 0; i <= 1 + (int)(this.world.getLevel() / 10); ++i) {
-            Point2d spawnLocation = world.getEmptyFields().get(rnd.nextInt(world.getEmptyFields().size()));
-            this.world.getEnemies().add(new Creeper(spawnLocation.getX(), spawnLocation.getY()));
-        }
-    }
-
-    /**
-     * TODO: delete, moved to world
-     */
-    private void resetGame() {
-        this.world.setLevel(0);
-        this.reset();
     }
 }
