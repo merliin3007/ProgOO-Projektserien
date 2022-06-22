@@ -63,6 +63,7 @@ public class GraphicView extends JPanel implements View {
 	AudioClip levelUpClip;
 	AudioClip creeperTriggeredClip;
 	AudioClip deathSoundClip;
+	AudioClip stepAudioClip;
 
 	/* Colors */
 	private Color pathColor = new Color(200, 200, 200);
@@ -342,6 +343,9 @@ public class GraphicView extends JPanel implements View {
 			case PLAYER_DIED:
 				this.deathSoundClip.play();
 				break;
+			case PLAYER_STEP:
+				this.stepAudioClip.play();
+				break;
 		}
 	}
 
@@ -389,6 +393,9 @@ public class GraphicView extends JPanel implements View {
 					/* smooth lighting animation */
 					float lightVal = 1.f / ((float)World.getDistance(i, j, world.getPlayerX(), world.getPlayerY()) * 0.1f * levelFactor);
 					lightVal = lightVal >= 1.f ? 1.f : lightVal;
+					float finishVal = .65f / (float)Math.log(World.getDistance(world.getFinishX(), world.getFinishY(), i, j) + 1.f);
+					finishVal = finishVal > .65f ? .65f : finishVal;
+					lightVal = (float)Math.max(lightVal, finishVal);
 					float smooth = this.SMOOTH_LIGHTING_ANIM_FACTOR * deltaTime;
 					this.playerDistanceLightingMap[j][i] = (this.playerDistanceLightingMap[j][i] * smooth + lightVal) / (smooth + 1.f);
 				}
@@ -572,10 +579,23 @@ public class GraphicView extends JPanel implements View {
 		this.levelUpClip = this.loadAudioClip("level_up.wav", .4f);
 		this.creeperTriggeredClip = this.loadAudioClip("creeper_triggered.wav", 1.f);
 		this.deathSoundClip = this.loadAudioClip("death.wav", 1.f);
+		this.stepAudioClip = this.loadCueAudioClip(new String[] { 
+			"step_1.wav",  "step_2.wav",  "step_3.wav",  "step_4.wav",  
+			"step_5.wav",  "step_6.wav",  "step_7.wav",  "step_8.wav",  
+			"step_9.wav",  "step_10.wav", "step_11.wav"    
+		}, .4f);
 	}
 
 	private AudioClip loadAudioClip(String filename, float volume) {
 		return new AudioClip(loadClip(filename), volume);
+	}
+
+	private CueAudioClip loadCueAudioClip(String[] filenames, float volume) {
+		CueAudioClip cueAudioClip = new CueAudioClip(volume);
+		for (String filename : filenames) {
+			cueAudioClip.addClip(this.loadClip(filename));
+		}
+		return cueAudioClip;
 	}
 
 	private Clip loadClip(String filename) {
@@ -583,7 +603,6 @@ public class GraphicView extends JPanel implements View {
 			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(AUDIO_PATH, filename).getAbsoluteFile());
 			Clip clip = AudioSystem.getClip();
 			clip.open(audioInputStream);
-			///clip.start();
 			return clip;
 		} catch(Exception e) {
 			System.out.println(String.format("Couldn't load audio '%s'.", filename));

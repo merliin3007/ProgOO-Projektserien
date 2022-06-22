@@ -8,10 +8,14 @@ import view.EnvironmentEvent;
 
 public class Creeper extends Enemy {
 
+    /* The distance the creeper can see. Be careful or the creeper will get triggered faster than twitter. */
     private final int EXPLOSION_TRIGGER_SIZE = 18; // 7
+    /* The diameter of the explosion. */
     private final int EXPLOSION_SIZE = 14;
+    /* The time between the trigger and the explosion. */
     private final float EXPLOSION_COUNTDOWN = 16.f; // 8.f
 
+    /* Sometimes a creeper is mad about u. Only this attribute knows whether that is the case now or not. */
     private boolean triggered = false;
     private float countdown = 0.f;
 
@@ -26,7 +30,7 @@ public class Creeper extends Enemy {
             super.update(world);
         }
 
-        if (World.getDistance(world.getPlayerLocation(), this.getLocation()) < EXPLOSION_TRIGGER_SIZE / 2) {
+        if (!this.triggered && World.getDistance(world.getPlayerLocation(), this.getLocation()) < EXPLOSION_TRIGGER_SIZE / 2) {
             this.triggered = true;
             this.countdown = EXPLOSION_COUNTDOWN;
             world.triggerEnvironmentEvent(EnvironmentEvent.CREEPER_TRIGGERED);

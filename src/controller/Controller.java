@@ -98,12 +98,13 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
         /* Calculate the (possibly) new location of the player */
         int newLocationX = world.getPlayerX() + dir.deltaX, newLocationY = world.getPlayerY() + dir.deltaY;
         /* Update player location if the player can move to the new field. */
-        if (world.canMoveToField(newLocationX, newLocationY)) {
+        if (world.canMoveToField(newLocationX, newLocationY) && !Point2d.equalPoints(new Point2d(newLocationX, newLocationY), world.getPlayerLocation())) {
             /* Player can move to field -> move to field */
             world.setPlayerLocation(newLocationX, newLocationY);
+            world.triggerEnvironmentEvent(EnvironmentEvent.PLAYER_STEP);
         } else {
-            /* Player can not move to field -> yell at the user */
-            System.out.println("Da ist ne Wand!");
+            /* Player can not move to field -> yell at the user for the premium gaming experience */
+            System.out.println("Da ist ne Wand oder das war der falsche Knopf!");
             return; // TODO check - enemy only updated on player move action 
         }
 
