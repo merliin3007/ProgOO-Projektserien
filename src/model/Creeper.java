@@ -3,12 +3,13 @@ package model;
 import java.util.Random;
 
 import utility.Point2d;
+import view.EnvironmentEvent;
 
 public class Creeper extends Enemy {
 
     private final int EXPLOSION_TRIGGER_SIZE = 18; // 7
     private final int EXPLOSION_SIZE = 14;
-    private final float EXPLOSION_COUNTDOWN = 8.f;
+    private final float EXPLOSION_COUNTDOWN = 16.f; // 8.f
 
     private boolean triggered = false;
     private float countdown = 0.f;
@@ -27,6 +28,7 @@ public class Creeper extends Enemy {
         if (World.getDistance(world.getPlayerLocation(), this.getLocation()) < EXPLOSION_TRIGGER_SIZE / 2) {
             this.triggered = true;
             this.countdown = EXPLOSION_COUNTDOWN;
+            world.triggerEnvironmentEvent(EnvironmentEvent.CREEPER_TRIGGERED);
         }
     }
 

@@ -34,6 +34,8 @@ public interface View {
 
 	void spawnExplosion(Point2d position, float size);
 
+	void triggerEnvironmentEvent(EnvironmentEvent event);
+
 	/**
 	* Gets whether this view is enabled or not.
 	* 

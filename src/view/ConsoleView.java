@@ -99,4 +99,9 @@ public class ConsoleView implements View {
 		return;
 	}
 
+	@Override
+	public void triggerEnvironmentEvent(EnvironmentEvent event) { 
+		return;
+	}
+
 }

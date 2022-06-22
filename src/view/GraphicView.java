@@ -42,6 +42,7 @@ public class GraphicView extends JPanel implements View {
 	/** The scaling factor. */
 	private Dimension fieldDimension, cameraDimension;
 
+	/* Resource paths */
 	private final File TEXTURE_PATH = new File(new File("resources"), "textures");
 	private final File AUDIO_PATH = new File(new File("resources"), "audio");
 
@@ -54,12 +55,13 @@ public class GraphicView extends JPanel implements View {
 	Texture creeperTriggeredTexture;
 	Texture stoneTexture;
 	Texture cobbleStoneTexture;
-
 	AnimationTexture particleExplosionTexture;
 
 	/* Audio Clips */
 	AudioClip soundtrackClip;
 	AudioClip explosionSoundClip;
+	AudioClip levelUpClip;
+	AudioClip creeperTriggeredClip;
 
 	/* Colors */
 	private Color pathColor = new Color(200, 200, 200);
@@ -327,6 +329,18 @@ public class GraphicView extends JPanel implements View {
 		this.explosionSoundClip.play();
 	}
 
+	@Override
+	public void triggerEnvironmentEvent(EnvironmentEvent event) { 
+		switch(event) {
+			case LEVEL_UP:
+				this.levelUpClip.play();
+				break;
+			case CREEPER_TRIGGERED:
+				this.creeperTriggeredClip.play();
+				break;
+		}
+	}
+
 	/**
 	 * Moves the camera.
 	 * 
@@ -551,6 +565,8 @@ public class GraphicView extends JPanel implements View {
 	private void loadAudioClips() {
 		this.soundtrackClip = this.loadAudioClip("sweden.wav", .1f);
 		this.explosionSoundClip = this.loadAudioClip("explode.wav", 1.f);
+		this.levelUpClip = this.loadAudioClip("level_up.wav", .4f);
+		this.creeperTriggeredClip = this.loadAudioClip("creeper_triggered.wav", 1.f);
 	}
 
 	private AudioClip loadAudioClip(String filename, float volume) {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
+import view.EnvironmentEvent;
 import view.View;
 import utility.Point2d;
 
@@ -164,6 +165,17 @@ public class World {
             enemy.update(this);
             // add position to weed set
             enemyPositions.add(enemy.getLocation().toString());
+        }
+    }
+
+    /**
+     * Triggers an Event that is only relevent to the views.
+     * 
+     * @param event The environment event to trigger.
+     */
+    public void triggerEnvironmentEvent(EnvironmentEvent event) {
+        for (View view : this.views) {
+            view.triggerEnvironmentEvent(event);
         }
     }
 
@@ -488,6 +500,9 @@ public class World {
      */
     public void incLevel() {
         this.level++;
+        if (level != 1) {
+            this.triggerEnvironmentEvent(EnvironmentEvent.LEVEL_UP);
+        }
     }
 
     public float getGlobalBrightness() {
