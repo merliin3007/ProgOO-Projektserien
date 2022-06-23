@@ -6,18 +6,41 @@ import java.util.Random;
 /* Project */
 import utility.Point2d;
 
+/**
+ * I see who you are
+ * You are my enemy
+ * My enemy
+ * You are my enemy
+ * I see who you are
+ * You are my enemy
+ */
 public class Enemy {
 
+    /** The position of the enemy. */
     private Point2d enemyPos;
+    /** Contains information about whether the enemy stepped to deep into a lake. */
     private boolean isDrowned;
+    /** If this false then no good for enemy. */
     private boolean isAlive = true;
 
+    /**
+	 * As a wise man once said: Creates a new instance.
+     * 
+     * @param x The x-axis coordinate.
+     * @param y The y-axis coordinate.
+	 */
     public Enemy(int x, int y) {
         enemyPos = new Point2d(x, y);
         Random rnd = new Random();
         this.isDrowned = rnd.nextBoolean();
     }
 
+    /**
+     * Updates the enemy.
+     * Gets called whenever the world has changed.
+     * 
+     * @param world The world the enemy is living in.
+     */
     public void update(World world) {
         /* Move towards player */
         MovementDirection moveDirection = MovementDirection.NONE;
@@ -56,16 +79,30 @@ public class Enemy {
         this.getLocation().add(moveDirection.deltaX, moveDirection.deltaY);
     }
 
+    /*
+     * Nah, we don't use that here.
+     */
     public void updateFrame(World world, float deltaTime) {
         return;
     }
 
+    /**
+     * Gets whether the enemy should be rendered as a zombie or as a drowned.
+     * 
+     * @return The RenderState lul.
+     */
     public EnemyRenderState getRenderState() {
         return this.isDrowned ? EnemyRenderState.DROWNED : EnemyRenderState.ZOMBIE;
     }
 
+    /**
+     * This Enemy has two minds. When this method is called, the BigBrain Mind moves the enemy.
+     * 
+     * @param world The world the enemy is living in.
+     * @return What direction to move.
+     */
     private MovementDirection moveBigBrainBot(World world) {
-        return world.enemyPathingTable.enemyMoveCompute(this.getLocation());
+        return world.getEnemyPathTable().enemyMoveCompute(this.getLocation());
     }
 
     /**

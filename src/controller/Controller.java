@@ -86,6 +86,11 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
                 dir = MovementDirection.RIGHT;
                 break;
 
+            /* Change difficulty */
+            case KeyEvent.VK_ENTER:
+                this.world.cycleDifficutly();
+                return;
+
             /* Reset the game */
             case KeyEvent.VK_R:
                 this.world.resetGame();
@@ -104,7 +109,11 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
             world.triggerEnvironmentEvent(EnvironmentEvent.PLAYER_STEP);
         } else {
             /* Player can not move to field -> yell at the user for the premium gaming experience */
-            System.out.println("Da ist ne Wand oder das war der falsche Knopf!");
+            if (!Point2d.equalPoints(new Point2d(newLocationX, newLocationY), world.getPlayerLocation())) {
+                System.out.println("You shall not pass!");
+            } else {
+                System.out.println("Das war der falsche Knopf!");
+            }
             return; // TODO check - enemy only updated on player move action 
         }
 
@@ -144,7 +153,9 @@ public class Controller extends JFrame implements KeyListener, ActionListener, M
      */
 
     @Override
-    public void mouseClicked(MouseEvent e) { }
+    public void mouseClicked(MouseEvent e) {
+        this.world.cycleDifficutly();
+    }
 
     @Override
     public void mousePressed(MouseEvent e) { }

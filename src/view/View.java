@@ -28,12 +28,26 @@ public interface View {
 	/**
 	 * Gets called whenever the level has changed.
 	 * 
-	 * @param world The world of which the level changed.
+	 * @param world But if this ever changin' world, in which we're livin', makes you give in and cry: Say live and let die.
 	 */
 	void onLevelChanged(World world);
 
+	/**
+	 * Explosion goes boooooom!
+	 * 
+	 * @param position The position to spawn some fancy explosion.
+	 * @param size The diameter of the explosion.
+	 */
 	void spawnExplosion(Point2d position, float size);
 
+	/**
+	 * This gets called by the world to trigger some events
+	 * that the view has to decide whether todo something
+	 * corresponding or not. Alle events should have purely
+	 * cosmetical effects.
+	 * 
+	 * @param event The Evenet that got triggered hard af.
+	 */
 	void triggerEnvironmentEvent(EnvironmentEvent event);
 
 	/**

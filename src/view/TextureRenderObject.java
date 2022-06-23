@@ -1,6 +1,6 @@
 package view;
 
-import java.awt.image.BufferedImage;
+/* Rendering */
 import java.awt.Color;
 import java.awt.Graphics;
 
@@ -61,6 +61,11 @@ public class TextureRenderObject extends RenderObject {
             (int)view.getCameraDimension().getWidth(), (int)view.getCameraDimension().getHeight());
     }
 
+    /**
+     * Sets the scale of this RenderObject.
+     * 
+     * @param scaleFactor The new scale-factor.
+     */
     public void setScaleFactor(float scaleFactor) {
         this.scaleFactor = scaleFactor;
     }

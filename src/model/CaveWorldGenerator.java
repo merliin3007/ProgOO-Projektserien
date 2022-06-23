@@ -9,10 +9,18 @@ import utility.Utility;
 public class CaveWorldGenerator implements WorldGenerator {
     private World world;
     
+    /**
+	 * As a wise man once said: Creates a new instance.
+     * 
+     * @param world Mein Vater war Bergmann...
+	 */
     public CaveWorldGenerator(World world) {
         this.world = world;
     }
     
+    /**
+     * Generates the map.
+     */
     @Override
     public void generateWorld() {
         if (Utility.DEBUG) {
@@ -72,6 +80,11 @@ public class CaveWorldGenerator implements WorldGenerator {
         }
     }
 
+    /**
+     * To dig and dig makes us free.
+     * 
+     * @param pathLen This specifies how long the random path should be.
+     */
     public void digRandomPath(int pathLen) {
         Point2d current = Point2d.RandomPoint2d(this.world.getWidth(), this.world.getHeight());
         for (int i = 0; i < pathLen; ++i) {

@@ -5,14 +5,40 @@ import java.util.Random;
 /* Project */
 import utility.*;
 
+/**
+ * All roads lead to rom.
+ */
 public class PathWorldGenerator implements WorldGenerator {
 
+    /** 
+     * I find it kind of funny
+     * I find it kind of sad
+     * The dreams in which I′m dying
+     * Are the best I've ever had
+     * 
+     * I find it hard to tell you
+     * I find it hard to take
+     * When people run in circles it′s a very, very
+     * Mad world
+     * Mad world
+     */
     private World world;
     
+    /**
+	 * As a wise man once said: Creates a new instance.
+     * 
+     * @param world "If everyone lived like an average resident of the USA, a total of four Earths would be required to regenerate humanity's annual demand on nature."
+     */
     public PathWorldGenerator(World world) {
         this.world = world;
     }
     
+    /**
+     * I hear babies cryin', I watch them grow
+     * They'll learn much more, than I′ll ever know
+     * And I think to myself
+     * What a wonderful world
+     */
     @Override
     public void generateWorld() {
         if (Utility.DEBUG) {
@@ -28,9 +54,9 @@ public class PathWorldGenerator implements WorldGenerator {
         Point2d endPoint = this.getCornerPointOnMap();
         // set start, finish
         this.world.setFinish(endPoint);
-        //start further point generation
+        // start further point generation
         Random r = new Random();
-        int amountOfRandomPoints = r.nextInt(10, 20); // TODO better values
+        int amountOfRandomPoints = r.nextInt(10, 20);
         Point2d[] pathPoints = new Point2d[amountOfRandomPoints + 1];
         // create primary path to connect
         for (int curPoint = 0; curPoint < pathPoints.length; curPoint++) {
@@ -39,7 +65,7 @@ public class PathWorldGenerator implements WorldGenerator {
             } else {
                 do {
                     pathPoints[curPoint] = getRandomPointOnMap();
-                } while (pathPoints[curPoint - 1].inRangeOf(pathPoints[curPoint], 3) && getQuadrant(pathPoints[curPoint]) == getQuadrant(pathPoints[curPoint - 1])); // TODO fixed range here
+                } while (pathPoints[curPoint - 1].inRangeOf(pathPoints[curPoint], 3) && getQuadrant(pathPoints[curPoint]) == getQuadrant(pathPoints[curPoint - 1]));
             }
         }
         Utility.shuffleArray(pathPoints);
@@ -78,10 +104,21 @@ public class PathWorldGenerator implements WorldGenerator {
         this.world.setStart(pathPoints[furthestDistance]);
     }
 
+    /**
+     * Gets not a random, but he most random point on the map.
+     * 
+     * @return Kiel-Oppendorf
+     */
     private Point2d getRandomPointOnMap() {
         return Point2d.RandomPoint2d(this.world.getWidth(), this.world.getHeight());
     }
 
+    /**
+     * Computes a point near a corner of the map.
+     * 
+     * @return /|\ That point. lol.
+     *          |
+     */
     private Point2d getCornerPointOnMap() {
         Point2d tmp = getRandomPointOnMap();
         do {
@@ -92,6 +129,12 @@ public class PathWorldGenerator implements WorldGenerator {
         return tmp;
     }
 
+    /**
+     * Gets whether a given point is in the top-left, top-right, bottom-left or bottom-right quadrant.
+     * 
+     * @param pos That point.
+     * @return The quadrant (1-4).
+     */
     private int getQuadrant(Point2d pos) {
         if (pos.getX() < (int) (this.world.getWidth() / 2)) {
             if (pos.getY() < (int) (this.world.getHeight() / 2))
@@ -104,7 +147,5 @@ public class PathWorldGenerator implements WorldGenerator {
             else
                 return 4;
         }
-
     }
-
 }

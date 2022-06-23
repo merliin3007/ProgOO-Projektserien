@@ -1,6 +1,6 @@
 package view;
 
-
+/* Project */
 import utility.Console;
 import utility.Point2d;
 import model.World;
@@ -15,6 +15,11 @@ public class ConsoleView implements View {
 	/** Whehter this view is enabled or not */
 	boolean isEnabled = true;
 
+	/**
+	 * Update the view.-
+	 * 
+	 * @world The world is ours.
+	 */
 	@Override
 	public void update(World world) {
 		if (!isEnabled) {
@@ -94,11 +99,17 @@ public class ConsoleView implements View {
 		return;
 	}
 
+	/**
+	 * Why do u care? Its obviously doing nothing. But very effecitve.
+	 */
 	@Override
 	public void spawnExplosion(Point2d position, float size) {
 		return;
 	}
 
+	/**
+	 * Why do u care? Its obviously doing nothing. But very effecitve.
+	 */
 	@Override
 	public void triggerEnvironmentEvent(EnvironmentEvent event) { 
 		return;

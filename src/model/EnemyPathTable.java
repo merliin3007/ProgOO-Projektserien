@@ -7,12 +7,40 @@ import java.util.Queue;
 /* Project */
 import utility.Point2d;
 
+/**
+ * I got my ticket for the long way 'round
+ * Two bottle o' whiskey for the way
+ * And I sure would like some sweet company
+ * And I'm leavin' tomorrow, what do you say?
+ */
 public class EnemyPathTable {
 
+    /** Used as the enemies binoculars. */
     int[][] shortestPathToPlayer;
-    // used to know whether the given field has received an update in the current calculation already
+    /** Somebody that I used to know whether the given field has received an update in the current calculation already */
     boolean[][] distanceUpdated;
 
+
+    /**
+	 * As a wise man once said: Creates a new instance.
+     * 
+     * @param world All the world is a stage, all the people are players,
+     * Ring up the curtain Applause one thing's for certain, it's yours ![2] You are the sense of occasion
+     * Mine is a standing ovation
+     * Your pleasure is only at your command
+     * You are to set the example
+     * I am the one to portray it
+     * To measure the storm that follows the calm.Chorus are E P E A T[3] You are the eyes of the reader
+     * I am the hand of the writer
+     * Together we can fill up a page
+     * You are the brain of the thinker
+     * I am the fave of expression
+     * Together we can act out the age.Chorus are E P E A T[4] The start and end to every story is the same
+     * But what comes in between you have yourself to blame:
+     * It makes no difference at all
+     * Just pick yourself when you fall
+     * So ring up the certain - applause.
+	 */
     EnemyPathTable(World world) {
         int ySize = world.getHeight(), xSize = world.getWidth();
         this.shortestPathToPlayer = new int[ySize][xSize];
@@ -25,7 +53,7 @@ public class EnemyPathTable {
     
     /**
      * Inserts all the map-collisions into the map, so they are not calculated while
-     * using the map
+     * using the map.
      *
      * @param collisionMap The collision-map of the world to consider.
      */

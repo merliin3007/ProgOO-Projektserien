@@ -16,25 +16,22 @@ import utility.Point2d;
  */
 public class World {
 
-    public static final int DIR_RIGHT = 3;
-    public static final int DIR_LEFT = 2;
-    public static final int DIR_DOWN = 1;
-    public static final int DIR_UP = 0;
-    /**
-     * The world's width.
-     */
+    /** The world's width. */
     private final int width;
-    /**
-     * The world's height.
-     */
+    /** The world's height. */
     private final int height;
 
+    /** The current level. */
     private int level = 0;
+    /** The current difficulty. */
     private Difficulty difficulty = Difficulty.HARD;
+    /** Prevent creeper apocalypsis. */
     private final float CREEPER_ZOMBIE_SPAWN_RATIO = 0.2f;
 
+    /** All my personal enemies... */
     private ArrayList<Enemy> enemies;
-    public EnemyPathTable enemyPathingTable;
+    /** ...But they don't knwo my address. */
+    private EnemyPathTable enemyPathingTable;
 
     /* The position of the start field. */
     private Point2d playerPosition, startPosition, finishPosition;
@@ -50,9 +47,12 @@ public class World {
      * creates a map of obstacles for the labyrinth, where "true" is an obstacle
      */
     private boolean[][] obstacleMap;
+    /** Heute gute wetter oder schatten? */
     private float globalBrightness = 1.0f;
+    /** A list of all empty fields in the world. */
     private ArrayList<Point2d> emptyFields;
 
+    /** All worldgenerators. all. */
     private ArrayList<WorldGenerator> worldGenerators;
 
     /**
@@ -63,6 +63,7 @@ public class World {
      */
     public World(int width, int height) {
         // Normally, we would check the arguments for proper values
+        // But not today.
         this.width = width;
         this.height = height;
         this.playerPosition = new Point2d(0, 0);
@@ -71,8 +72,25 @@ public class World {
         this.worldGenerators = new ArrayList<WorldGenerator>();
         this.worldGenerators.add(new PathWorldGenerator(this));
         this.worldGenerators.add(new CaveWorldGenerator(this));
-        /// this.resetWorld();
         this.reset();
+    }
+
+    /**
+     * Cycle through the difficulties.
+     */
+    public void cycleDifficutly() {
+        switch(this.getDifficulty()) {
+            case EASY:
+                this.setDifficulty(Difficulty.NORMAL);
+                break;
+            case NORMAL:
+                this.setDifficulty(Difficulty.HARD);
+                break;
+            case HARD:
+                this.setDifficulty(Difficulty.EASY);
+                break;
+        }
+        System.out.println(String.format("The diffculty was changed to %s.", this.getDifficulty()));
     }
 
     /**
@@ -90,18 +108,30 @@ public class World {
         this.levelChanged();
     }
 
+    /**
+     * This will only get called if ur a progamer.
+     */
     public void levelChanged() {
         for (View view : this.views) {
             view.onLevelChanged(this);
         }
     }
 
+    /**
+     * Does exactly what u think it does.
+     * 
+     * @param position The position to place the explosion at. Hint: not austria.
+     * @param size The diameter of the explosion.
+     */
     public void spawnExplosion(Point2d position, float size) {
         for (View view : this.views) {
             view.spawnExplosion(position, size);
         }
     }
 
+    /**
+     * Resets some things
+     */
     public void reset() {
         Random rnd = new Random();
         this.incLevel();
@@ -116,11 +146,15 @@ public class World {
         }
     }
 
+    /**
+     * Resets the whole game.
+     */
     public void resetGame() {
         this.setLevel(0);
         this.reset();
     }
 
+    /** Used for deltaTime measuring. */
     private long lastTime = System.nanoTime();
 
     /**
@@ -149,6 +183,9 @@ public class World {
         this.views.get(0).updateCamera(this, deltaTime);
     }
 
+    /**
+     * Updates all enemies.
+     */
     public void updateEnemies() {
         /* Don't update pathing table in easy difficulty because it's not used. */
         if (difficulty != Difficulty.EASY) {
@@ -528,8 +565,6 @@ public class World {
      * @param xPos The x-coordinate of the field to set.
      * @param yPos The y-coordinate of the field to set.
      */
-    ///////////////////////////////////////////////////////////////////////////
-    // Player Management
     void setObstacleInField(int xPos, int yPos) {
         if (xPos >= 0 && xPos < this.getWidth() && yPos >= 0 && yPos < this.getHeight())
             this.obstacleMap[yPos][xPos] = true;
@@ -543,8 +578,6 @@ public class World {
      * @param xPos The x-coordinate of the field to remove.
      * @param yPos The y-coordinate of the field to remove.
      */
-    ///////////////////////////////////////////////////////////////////////////
-    // Player Management
     void removeObstacleInField(int xPos, int yPos) {
         if (xPos >= 0 && xPos < this.getWidth() && yPos >= 0 && yPos < this.getHeight()) {
             this.obstacleMap[yPos][xPos] = false;
@@ -576,20 +609,36 @@ public class World {
         setPlayerY(yPos);
     }
 
+    /**
+     * Gets the enemy path table.
+     * 
+     * @return the enemyyyyyyyyy path table.
+     */
     public EnemyPathTable getEnemyPathTable() {
         return this.enemyPathingTable;
     }
 
+    /**
+     * how difficult was this again?
+     * 
+     * @return Ahhh, thank u.
+     */
     public Difficulty getDifficulty() {
         return this.difficulty;
     }
 
+    /**
+     * I want this game to be easier.
+     * 
+     * @param difficulty no problem.
+     */
     public void setDifficulty(Difficulty difficulty) {
         this.difficulty = difficulty;
     }
 
-    ///////////////////////////////////////////////////////////////////////////
-    // View Management
+    /**
+     * View Managment
+     */
 
     /**
      * Adds the given view of the world and updates it once. Once registered through

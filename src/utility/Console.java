@@ -2,9 +2,17 @@ package utility;
 
 import java.util.Random;
 
+/**
+ * A class with some faaaancy utility functions
+ */
 public class Console {
-    private Console() {}
 
+    /** U shall not create an instance of this class. */
+    private Console() { }
+
+    /**
+     * Some weird operating system decided to use 'cls' instead of 'clear'. Shame.
+     */
     public final static void clear()
     {
         try

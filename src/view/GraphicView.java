@@ -14,11 +14,9 @@ import javax.swing.JPanel;
 import java.awt.image.BufferedImage;
 
 /* Sound */
-import java.io.File;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.sound.sampled.FloatControl;
 
 /* Project */
 import utility.Utility;
@@ -32,6 +30,7 @@ import model.Enemy;
  */
 public class GraphicView extends JPanel implements View {
 
+	/** Dont change this, I didn't implent all changes for NON-smooth-anim-lighting-kram */
 	private final boolean ENABLE_SMOOTH_LIGHTING_ANIM = true;
 	private final float SMOOTH_LIGHTING_ANIM_FACTOR = .5f;
 	
@@ -69,36 +68,12 @@ public class GraphicView extends JPanel implements View {
 	private Color pathColor = new Color(200, 200, 200);
 	private Color obstacleColor = new Color(100, 100, 100);
 	
-	/**
-	 * Creates a new instance.
-	 */
-	public GraphicView(int width, int height, Dimension fieldDimension) {
-		this.WIDTH = width;
-		this.HEIGHT = height;
-		this.fieldDimension = fieldDimension;
-		this.cameraDimension = new Dimension(
-			(int)(fieldDimension.getWidth() * this.zoom), 
-			(int)(fieldDimension.getHeight() * this.zoom)
-		);
-
-		if (Utility.DEBUG) {
-			System.out.println(String.format("Created Window of Size %d * %d", this.WIDTH, this.HEIGHT));
-		}
-
-		/* Load all textures. */
-		this.loadTextures();
-
-		/* Load all audio clips */
-		this.loadAudioClips();
-		this.soundtrackClip.playLoop();
-
-		/* Init RenderObjects */
-		this.player = new TextureRenderObject(new Point2d(0, 0), new Lighting(1.f), this.playerTexture);
-		this.finish = new TextureRenderObject(new Point2d(0, 0), new Lighting(1.f), this.houseTexture);
-	}
-	
 	/** The level text */
 	private final Rectangle levelCounter = new Rectangle(1, 1);
+	/** The difficulty display gedöns */
+	private final Rectangle difficultyDisplay = new Rectangle(1, 1);
+	/** The content of the difficulty display gedöns */
+	private String difficultyDisplayContent = "";
 	/** The text the level counter ist displaying */
 	private String levelCounterContent = "";
 	/** The global brighness. */
@@ -129,6 +104,34 @@ public class GraphicView extends JPanel implements View {
 	private float[][] levelLightingMap;
 	/** The shading map for the player, changes every frame (dynamic lighting) */
 	private float[][] playerDistanceLightingMap;
+	
+	/**
+	 * Creates a new instance.
+	 */
+	public GraphicView(int width, int height, Dimension fieldDimension) {
+		this.WIDTH = width;
+		this.HEIGHT = height;
+		this.fieldDimension = fieldDimension;
+		this.cameraDimension = new Dimension(
+			(int)(fieldDimension.getWidth() * this.zoom), 
+			(int)(fieldDimension.getHeight() * this.zoom)
+		);
+
+		if (Utility.DEBUG) {
+			System.out.println(String.format("Created Window of Size %d * %d", this.WIDTH, this.HEIGHT));
+		}
+
+		/* Load all textures. */
+		this.loadTextures();
+
+		/* Load all audio clips */
+		this.loadAudioClips();
+		this.soundtrackClip.playLoop();
+
+		/* Init RenderObjects */
+		this.player = new TextureRenderObject(new Point2d(0, 0), new Lighting(1.f), this.playerTexture);
+		this.finish = new TextureRenderObject(new Point2d(0, 0), new Lighting(1.f), this.houseTexture);
+	}
 
 	@Override
 	public void paint(Graphics g) {
@@ -169,6 +172,9 @@ public class GraphicView extends JPanel implements View {
 		/* Draw Level Counter */
 		g.setColor(Color.WHITE);
 		g.drawString(String.format(this.levelCounterContent), levelCounter.x, levelCounter.y);
+
+		/* Draw Difficulty Display Gedöns */
+		g.drawString(String.format(this.difficultyDisplayContent), difficultyDisplay.x, difficultyDisplay.y);
 	}
 
 	@Override
@@ -235,8 +241,14 @@ public class GraphicView extends JPanel implements View {
 			(int)(1 * this.fieldDimension.width),
 			(int)(world.getHeight() * this.fieldDimension.height - this.fieldDimension.height)
 		);
-
 		this.levelCounterContent = String.format("Level: %d", world.getLevel());
+
+		/* Difficulty Display Gedöns */
+		this.difficultyDisplay.setLocation(
+			(int)(1 * this.fieldDimension.width),
+			(int)(world.getHeight() * this.fieldDimension.height - 3 * this.fieldDimension.height)
+		);
+		this.difficultyDisplayContent = String.format("Difficulty: %s", world.getDifficulty().toString());
 
 		repaint();
 	}
@@ -317,7 +329,7 @@ public class GraphicView extends JPanel implements View {
 	/**
 	 * Is called whenever the level changes
 	 * 
-	 * @param world The world in which the level changed.
+	 * @param world But if this ever changin' world, in which we're livin', makes you give in and cry: Say live and let die.
 	 */
 	@Override
 	public void onLevelChanged(World world) {
@@ -325,12 +337,23 @@ public class GraphicView extends JPanel implements View {
 		this.generateLevelLightingMap(world);
 	}
 
+	/**
+	 * Spawns an explosion.
+	 * 
+	 * @position Where to spawn the explosion.
+	 * @size The diameter of the explosion.
+	 */
 	@Override
 	public void spawnExplosion(Point2d position, float size) {
 		this.particles.add(new ParticleRenderObject(position, new Lighting(size), this.particleExplosionTexture, size));
 		this.explosionSoundClip.play();
 	}
 
+	/**
+	 * Trigger some event.
+	 * 
+	 * @event The event to trigger.
+	 */
 	@Override
 	public void triggerEnvironmentEvent(EnvironmentEvent event) { 
 		switch(event) {
@@ -360,6 +383,11 @@ public class GraphicView extends JPanel implements View {
 		this.cameraPosition.addY(dirY);
 	}
 
+	/**
+	 * Updates all particles.
+	 * 
+	 * @deltaTime The time that has passed by since the last time this method was called.
+	 */
 	private void updateParticles(float deltaTime) {
 		for (int i = 0; i < this.particles.size(); ++i) {
 			ParticleRenderObject particle = this.particles.get(i);
@@ -376,7 +404,7 @@ public class GraphicView extends JPanel implements View {
 	 * 
 	 * @param world the world to generate the lighting map for.
 	 */
-	public void generatePlayerDistanceLightingMap(World world, float deltaTime) {
+	private void generatePlayerDistanceLightingMap(World world, float deltaTime) {
 		/* Lightingmap should not be null */
 		if (this.playerDistanceLightingMap == null) {
 			this.playerDistanceLightingMap = new float[world.getHeight()][world.getWidth()];
@@ -408,7 +436,7 @@ public class GraphicView extends JPanel implements View {
 	 * 
 	 * @param world The world to generate the shading map for.
      */
-    public void generateLevelLightingMap(World world) {
+    private void generateLevelLightingMap(World world) {
 		/* lighting map should not be null */
 		if (this.levelLightingMap == null) {
 			this.levelLightingMap = new float[world.getHeight()][world.getWidth()];
@@ -573,23 +601,40 @@ public class GraphicView extends JPanel implements View {
 		}
 	}
 
+	/**
+	 * Loads all AudioClips used in the game.
+	 */
 	private void loadAudioClips() {
 		this.soundtrackClip = this.loadAudioClip("sweden.wav", .1f);
 		this.explosionSoundClip = this.loadAudioClip("explode.wav", 1.f);
 		this.levelUpClip = this.loadAudioClip("level_up.wav", .4f);
 		this.creeperTriggeredClip = this.loadAudioClip("creeper_triggered.wav", 1.f);
 		this.deathSoundClip = this.loadAudioClip("death.wav", 1.f);
-		this.stepAudioClip = this.loadCueAudioClip(new String[] { 
-			"step_1.wav",  "step_2.wav",  "step_3.wav",  "step_4.wav",  
-			"step_5.wav",  "step_6.wav",  "step_7.wav",  "step_8.wav",  
-			"step_9.wav",  "step_10.wav", "step_11.wav"    
-		}, .4f);
+		this.stepAudioClip = this.loadCueAudioClip(new String[] {
+			"step_1.wav",  "step_2.wav",  "step_3.wav",  "step_4.wav",
+			"step_5.wav",  "step_6.wav",  "step_7.wav",  "step_8.wav",
+			"step_9.wav",  "step_10.wav", "step_11.wav"
+		}, .1f);
 	}
 
+	/**
+	 * Loads an AudioClip.
+	 * 
+	 * @param filename The filename of the audioclip.
+	 * @param volume The volume of the audioclip.
+	 * @return The AudioClip.
+	 */
 	private AudioClip loadAudioClip(String filename, float volume) {
 		return new AudioClip(loadClip(filename), volume);
 	}
 
+	/**
+	 * Loads an CueAudioClip.
+	 * 
+	 * @param filenames The file name of the AudioClip.
+	 * @param volume The volume of the AudioClip.
+	 * @return The loaded AudioClip.
+	 */
 	private CueAudioClip loadCueAudioClip(String[] filenames, float volume) {
 		CueAudioClip cueAudioClip = new CueAudioClip(volume);
 		for (String filename : filenames) {
@@ -598,6 +643,12 @@ public class GraphicView extends JPanel implements View {
 		return cueAudioClip;
 	}
 
+	/**
+	 * Loads a Clip from an Audio File.
+	 * 
+	 * @param filename The name of the AudioFile.
+	 * @return The loaded Clip.
+	 */
 	private Clip loadClip(String filename) {
 		try {
 			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(AUDIO_PATH, filename).getAbsoluteFile());
