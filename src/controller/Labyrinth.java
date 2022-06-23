@@ -81,30 +81,13 @@ public class Labyrinth {
                     float time = 0.0f;
                     public void actionPerformed(ActionEvent actionEvent) {
                         world.timerTick(time);
-                        time += 0.01f; // TODO: measure delta time
+                        time += 0.01f; 
                     }
                 };
                 Timer timer = new Timer(16, actionListener);
                 timer.start();
             }
         });
-
-        /*
-        EventQueue.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                ActionListener actionListener = new ActionListener() {
-
-                    public void actionPerformed(ActionEvent actionEvent) {
-                        System.out.println("Hello");
-                    }
-                };
-                Timer timer = new Timer(500, actionListener);
-                timer.start();
-            }
-        });
-        */
 
 
     }

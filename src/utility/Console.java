@@ -1,7 +1,5 @@
 package utility;
 
-import java.util.Random;
-
 /**
  * A class with some faaaancy utility functions
  */

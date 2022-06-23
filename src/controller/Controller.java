@@ -1,17 +1,13 @@
 package controller;
 
-import model.Creeper;
 import model.Enemy;
 import model.MovementDirection;
 import model.World;
 import utility.Point2d;
 import view.EnvironmentEvent;
-import view.View;
 
 import javax.swing.*;
 import java.awt.event.*;
-import java.util.List;
-import java.util.Random;
 
 
 /**
